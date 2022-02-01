@@ -1,6 +1,7 @@
 package com.safetynetalert.projet5.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
 

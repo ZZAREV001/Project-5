@@ -12,10 +12,11 @@ public interface DataFileAccess {
 
     List<Person> getPersonsByFirestationNumber(int firestationNumber);
 
+    List<Person> getPersonsByAddress(String address);
+
     int getAgeFromBirthdate(String birthdate);
 
     int getNbStationByAddressFromPerson(Person person);
-
 
     List<Person> getPersons();
 
@@ -23,21 +24,6 @@ public interface DataFileAccess {
 
     List<MedicalRecords> getMedicalrecords();
 
-    Person savePerson(Person model);
 
-    Person updatePerson(Person model);
 
-    boolean deletePerson(Person model);
-
-    MedicalRecords saveMedicalRecords(MedicalRecords model);
-
-    MedicalRecords updateMedicalRecords(MedicalRecords model);
-
-    Firestations saveFirestation(Firestations model);
-
-    Firestations updateFirestation(Firestations model);
-
-    boolean deleteFirestation(Firestations model);
-
-    boolean deleteMedicalRecords(MedicalRecords model);
 }

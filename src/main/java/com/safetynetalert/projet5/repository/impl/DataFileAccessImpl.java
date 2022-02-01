@@ -6,8 +6,7 @@ import com.safetynetalert.projet5.model.MedicalRecords;
 import com.safetynetalert.projet5.model.Person;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import java.io.File;
@@ -17,11 +16,11 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
+@Slf4j
 public class DataFileAccessImpl implements DataFileAccess {
-
-    private static final Logger logger = LogManager.getLogger(DataFileAccessImpl.class);
 
     private ObjectMapper objectMapper;
     private DataFile dataFile;
@@ -43,9 +42,9 @@ public class DataFileAccessImpl implements DataFileAccess {
             dataFile = objectMapper.readValue(
                     new File("/Users/GoldenEagle/IdeaProjects/projet-5-bis/src/main/resources/datafile.json"),
                     DataFile.class);
-            logger.debug("Json correctly mapped!");
+            log.debug("Json correctly mapped!");
         } catch (IOException e) {
-            logger.error("Error while JSON mapping!");
+            log.error("Error while JSON mapping!");
             throw new RuntimeException(e);
         }
         return dataFile;
@@ -77,6 +76,22 @@ public class DataFileAccessImpl implements DataFileAccess {
     }
 
     @Override
+    public List<Person> getPersonsByAddress(String address) {
+        List<Person> result = new ArrayList<>();
+
+        return getPersons().stream()
+                .filter(person -> person.getAddress().contentEquals(address))
+                .collect(Collectors.toList());
+
+        /*for (Person person : loadDataFile().getPersons()) {
+            if (Objects.equals(address, person.getAddress())) {
+                result.add(person);
+            }
+        }
+        return result;*/
+    }
+
+    @Override
     public int getAgeFromBirthdate(String birthdate) {
         LocalDate currentDate = LocalDate.now();
         try {
@@ -85,9 +100,9 @@ public class DataFileAccessImpl implements DataFileAccess {
             LocalDate birthDate = LocalDate.parse(birthdate, formatter);
             return Period.between(birthDate, currentDate).getYears();
         } catch (DateTimeParseException e) {
-            logger.info("Birthdate non valid.");
+            log.info("Birthdate non valid.");
         } catch (RuntimeException e) {
-            logger.info("Birthdate non valid.");
+            log.info("Birthdate non valid.");
         }
         return 0;
     }
@@ -121,129 +136,6 @@ public class DataFileAccessImpl implements DataFileAccess {
         return new ArrayList<>(loadDataFile().getMedicalrecords());
     }
 
-    @Override
-    public Person savePerson(Person model) {
-        if (model != null) {
-            boolean i;
-            if (loadDataFile().getPersons() != null) {
-                i = loadDataFile().getPersons().stream().noneMatch(person -> person.equals(model));
-                if (i) {
-                    loadDataFile().getPersons().add(model);
-                    return model;
-                }
-            } else {
-                List<Person> personList = new ArrayList<>();
-                personList.add(model);
-                loadDataFile().setPersons(personList);
-                return model;
 
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Person updatePerson(Person model) {
-        if (model != null) {
-            if (loadDataFile().getPersons() != null) {
-                Optional<Person> personOptionalToUpdate = loadDataFile().getPersons().stream().filter(person -> model.getFirstName().equals(person.getFirstName()) &&
-                        model.getLastName().equals(person.getLastName())).findFirst();
-                if (personOptionalToUpdate.isPresent()) {
-                    loadDataFile().getPersons().set(loadDataFile().getPersons().indexOf(personOptionalToUpdate.get()), model);
-                    return model;
-                }
-            } else loadDataFile().setPersons(new ArrayList<>());
-        }
-        return null;
-    }
-
-    @Override
-    public boolean deletePerson(Person model) {
-        if (model != null) {
-            if (loadDataFile().getPersons() != null) {
-                Optional<Person> personOptionalTodelete = loadDataFile().getPersons().stream().filter(person -> model.getFirstName().equals(person.getFirstName()) &&
-                        model.getLastName().equals(person.getLastName())).findFirst();
-                if (personOptionalTodelete.isPresent()) {
-                    loadDataFile().getPersons().remove(personOptionalTodelete.get());
-                    return true;
-                }
-            } else loadDataFile().setPersons(new ArrayList<>());
-        }
-        return false;
-    }
-
-    @Override
-    public MedicalRecords saveMedicalRecords(MedicalRecords model) {
-        if (model != null) {
-            boolean i;
-            if (loadDataFile().getMedicalrecords() != null) {
-                i = loadDataFile().getMedicalrecords().stream().noneMatch(medicalRecords -> medicalRecords.equals(model));
-                if (i) {
-                    loadDataFile().getMedicalrecords().add(model);
-                    return model;
-                }
-            } else {
-                List<MedicalRecords> medicalRecordsList = new ArrayList<>();
-                medicalRecordsList.add(model);
-                loadDataFile().setMedicalrecords(medicalRecordsList);
-                return model;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public MedicalRecords updateMedicalRecords(MedicalRecords model) {
-        if (model != null) {
-            if (loadDataFile().getMedicalrecords() != null) {
-                Optional<MedicalRecords> medicalRecordsOptionalToUpdate = loadDataFile().getMedicalrecords().stream().filter(medicalRecords -> model.getFirstName().equals(medicalRecords.getFirstName()) &&
-                        model.getLastName().equals(medicalRecords.getLastName())).findFirst();
-                if (medicalRecordsOptionalToUpdate.isPresent()) {
-                    loadDataFile().getMedicalrecords().set(loadDataFile().getMedicalrecords().indexOf(medicalRecordsOptionalToUpdate.get()), model);
-                    return model;
-                }
-            } else loadDataFile().setMedicalrecords(new ArrayList<>());
-        }
-        return null;
-    }
-
-    public boolean deleteMedicalRecords(MedicalRecords model) {
-        return true;
-    }
-
-    @Override
-    public Firestations saveFirestation(Firestations model) {
-        if (model != null) {
-            boolean i;
-            if (loadDataFile().getFirestations() != null) {
-                i = loadDataFile().getFirestations().stream().noneMatch(firestations -> firestations.equals(model));
-                if (i) {
-                    loadDataFile().getFirestations().add(model);
-                    return model;
-                }
-            } else {
-                List<Firestations> firestationsList = new ArrayList<>();
-                firestationsList.add(model);
-                loadDataFile().setFirestations(firestationsList);
-                return model;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Firestations updateFirestation(Firestations model) {
-        return null;
-    }
-
-    @Override
-    public boolean deleteFirestation(Firestations model) {
-        if (model != null) {
-            if (loadDataFile().getFirestations() != null) {
-                return loadDataFile().getFirestations().remove(model);
-            } else loadDataFile().setFirestations(new ArrayList<>());
-        }
-        return false;
-    }
 
 }

@@ -1,29 +1,26 @@
 package com.safetynetalert.projet5.service.impl;
 
+import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
 import com.safetynetalert.projet5.controller.NoFirestationFoundException;
-import com.safetynetalert.projet5.exceptions.ControllerAdvisor;
-import com.safetynetalert.projet5.model.Firestations;
-import com.safetynetalert.projet5.model.FirestationsZone;
-import com.safetynetalert.projet5.model.Person;
+import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.apache.commons.collections.CollectionUtils;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FireStationsServiceImpl implements FireStationsService {
-
-    private static final Logger log = LogManager.getLogger(ControllerAdvisor.class);
 
     @Autowired
     private DataFileAccess dataFileAccess;
+    private MedicalRecords medicalRecords;
 
 
     @Override
@@ -43,6 +40,35 @@ public class FireStationsServiceImpl implements FireStationsService {
         throw new NoFirestationFoundException(List.of(firestationNumber));
     }
 
+    /* TO get a list of children living at a particular address: the list should contain first name, last
+       name, age and a list of the other member of the family (adults). If no children at this address: return an empty array.
+           TO access children, we should traverse Medical records hash table, calculate age
+           and store in a list of object.
+     */
+    @Override
+    public ChildAlert getChildFromMedicalRecords(String address) throws IOException {
+        List<FullInfoPerson> listChild = new ArrayList<>();
+        List<FullInfoPerson> listAdult = new ArrayList<>();
+        for (Person person : dataFileAccess.getPersonsByAddress(address)) {
+            FullInfoPerson fullInfoPerson = new FullInfoPerson(person.getFirstName(), person.getLastName(),
+                    null, null, null, null, null, null,
+                    dataFileAccess.getAgeFromPerson(person), null, null, 0);
+            if (fullInfoPerson.getAge() < 19) {
+                listChild.add(fullInfoPerson);
+            } else {
+                listAdult.add(fullInfoPerson);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(listChild)) {
+            log.info("Request get child alerts successful!");
+            return new ChildAlert(address, listChild, listAdult);
+        }
+        log.info("Request get child alerts failed.");
+        throw new NoChildFoundFromAddressException(address);
+
+
+    }
+
     @Override
     public List<String> getPhoneAlertFromFirestations(int firestationNumber) {
         List<String> phoneNumberList = new ArrayList<>();
@@ -60,8 +86,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         throw new NoFirestationFoundException(List.of(firestationNumber));
     }
 
-    @Override
-    public List<Integer> getStationByAddress(String address) {
+    private List<Integer> getStationByAddress(String address) {
         List<Integer> stationNumber = new ArrayList<>();
 
         for (Firestations fireStation : dataFileAccess.getFirestations()) {
@@ -73,36 +98,12 @@ public class FireStationsServiceImpl implements FireStationsService {
     }
 
     @Override
-    public List<String> getCommunityEmail() {
+    public List<String> getCommunityEmail(String city) {
         return dataFileAccess.getPersons().stream()
                 .map(Person::getEmail)
                 .collect(Collectors.toList());
     }
 
 
-
-    @Override
-    public Firestations saveFirestation(Firestations model) {
-        Firestations result = dataFileAccess.saveFirestation(model);
-        if (result != null) log.info("Request save firestation successful!");
-        log.info("Request save firestation failed.");
-        return result;
-    }
-
-    @Override
-    public Firestations updateFirestation(Firestations model) {
-        Firestations result = dataFileAccess.updateFirestation(model);
-        if (result != null) log.info("Request save firestation successful!");
-        log.info("Request save firestation failed.");
-        return result;
-    }
-
-    @Override
-    public boolean deleteFirestation(Firestations model) {
-        boolean result = dataFileAccess.deleteFirestation(model);
-        if (result) log.info("Request delete firestation successful!");
-        log.info("Request delete firestation failed.");
-        return result;
-    }
 
 }

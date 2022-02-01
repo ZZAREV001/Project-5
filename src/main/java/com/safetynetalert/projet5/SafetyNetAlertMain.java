@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Projet5BisApplication {
+public class SafetyNetAlertMain {
 
     public static void main(String[] args) {
-        SpringApplication.run(Projet5BisApplication.class, args);
+        SpringApplication.run(SafetyNetAlertMain.class, args);
     }
 
 }
