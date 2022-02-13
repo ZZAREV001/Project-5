@@ -1,5 +1,7 @@
 package com.safetynetalert.projet5.model;
 
+import org.springframework.context.annotation.Bean;
+
 import java.util.List;
 import java.util.Objects;
 

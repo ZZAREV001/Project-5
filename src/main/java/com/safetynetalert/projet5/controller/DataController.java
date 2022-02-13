@@ -16,13 +16,13 @@ public class DataController {
 
 
     @GetMapping(value = "/firestation", produces = "application/json")
-    public FirestationsZone getFirestationsByID(@RequestParam int stationNumber) {
-        return fireStationsService.getFirestationZone(stationNumber);
+    public FirestationsZone getFireStationsByID(@RequestParam int stationNumber) {
+        return fireStationsService.getFireStationZone(stationNumber);
     }
 
     @GetMapping(value = "/phoneAlert", produces = "application/json")
     public List<String> getPhoneAlert(@RequestParam int stationNumber) {
-        return fireStationsService.getPhoneAlertFromFirestations(stationNumber);
+        return fireStationsService.getPhoneAlertFromFireStations(stationNumber);
     }
 
     @GetMapping(value = "/communityEmail", produces = "application/json")
@@ -33,6 +33,16 @@ public class DataController {
     @GetMapping(value = "/childAlert", produces = "application/json")
     public ChildAlert getChildAlert(@RequestParam String address) throws IOException {
         return fireStationsService.getChildFromMedicalRecords(address);
+    }
+
+    @GetMapping(value = "/fire", produces = "application/json")
+    public FirePerson getFireAddress(@RequestParam String address) {
+        return fireStationsService.getFirePersonByAddress(address);
+    }
+
+    @GetMapping(value = "/flood/stations", produces = "application/json")
+    public FloodStation getFloodStations(@RequestParam int stationNumber) {
+        return fireStationsService.getFloodStationsForPersons(stationNumber);
     }
 
 

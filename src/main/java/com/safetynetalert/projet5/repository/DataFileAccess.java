@@ -1,6 +1,7 @@
 package com.safetynetalert.projet5.repository;
 
 import com.safetynetalert.projet5.model.Firestations;
+import com.safetynetalert.projet5.model.FullInfoPerson;
 import com.safetynetalert.projet5.model.MedicalRecords;
 import com.safetynetalert.projet5.model.Person;
 
@@ -14,16 +15,19 @@ public interface DataFileAccess {
 
     List<Person> getPersonsByAddress(String address);
 
+    List<Firestations> getPersonsByStation(int stationNumber);
+
     int getAgeFromBirthdate(String birthdate);
 
     int getNbStationByAddressFromPerson(Person person);
+
+    List<String> getMedicationsPerPerson(Person person);
+
+    List<String> getAllergiesPerPerson(Person person);
 
     List<Person> getPersons();
 
     List<Firestations> getFirestations();
 
     List<MedicalRecords> getMedicalrecords();
-
-
-
 }

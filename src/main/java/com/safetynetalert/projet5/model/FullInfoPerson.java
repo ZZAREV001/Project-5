@@ -62,6 +62,8 @@ public class FullInfoPerson {
     public FullInfoPerson() {
     }
 
+
+
     public String getFirstName() {
         return firstName;
     }

@@ -8,12 +8,16 @@ import java.util.List;
 
 public interface FireStationsService {
 
-    FirestationsZone getFirestationZone(int firestationNumber);
+    FirestationsZone getFireStationZone(int firestationNumber);
 
     ChildAlert getChildFromMedicalRecords(String address) throws IOException;
 
-    List<String> getPhoneAlertFromFirestations(int firestationNumber);
+    List<String> getPhoneAlertFromFireStations(int firestationNumber);
 
     List<String> getCommunityEmail(String city);
+
+    FirePerson getFirePersonByAddress(String address);
+
+    FloodStation getFloodStationsForPersons(int stationNumber);
 
 }

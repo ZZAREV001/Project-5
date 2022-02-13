@@ -1,5 +1,6 @@
 package com.safetynetalert.projet5.exceptions;
 
+import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
 import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,8 +16,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ControllerAdvisor extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LogManager.getLogger(ControllerAdvisor.class);
-
-    /*@ExceptionHandler(NoFirestationFoundException.class)
+/*
+    @ExceptionHandler(NoFirestationFoundException.class)
     @ResponseBody
     public ResponseEntity<?> handleNoFirestationFoundException(NoFirestationFoundException e) {
         logger.error("Firestation not found!");

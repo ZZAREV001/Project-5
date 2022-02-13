@@ -1,7 +1,10 @@
 package com.safetynetalert.projet5.model;
 
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@NoArgsConstructor
 public class DataFile {
 
     private List<Person> persons;
@@ -49,4 +52,5 @@ public class DataFile {
                 ", medicalrecords=" + medicalrecords +
                 '}';
     }
+
 }

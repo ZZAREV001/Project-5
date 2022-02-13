@@ -1,11 +1,10 @@
 package com.safetynetalert.projet5.repository.impl;
 
-import com.safetynetalert.projet5.model.DataFile;
-import com.safetynetalert.projet5.model.Firestations;
-import com.safetynetalert.projet5.model.MedicalRecords;
-import com.safetynetalert.projet5.model.Person;
+import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -64,34 +63,6 @@ public class DataFileAccessImpl implements DataFileAccess {
     }
 
     @Override
-    public List<Person> getPersonsByFirestationNumber(int fireStationNumber) {
-        List<Person> result = new ArrayList<>();
-
-        for (Person person : loadDataFile().getPersons()) {
-            if (getNbStationByAddressFromPerson(person) == fireStationNumber) {
-                result.add(person);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public List<Person> getPersonsByAddress(String address) {
-        List<Person> result = new ArrayList<>();
-
-        return getPersons().stream()
-                .filter(person -> person.getAddress().contentEquals(address))
-                .collect(Collectors.toList());
-
-        /*for (Person person : loadDataFile().getPersons()) {
-            if (Objects.equals(address, person.getAddress())) {
-                result.add(person);
-            }
-        }
-        return result;*/
-    }
-
-    @Override
     public int getAgeFromBirthdate(String birthdate) {
         LocalDate currentDate = LocalDate.now();
         try {
@@ -105,6 +76,32 @@ public class DataFileAccessImpl implements DataFileAccess {
             log.info("Birthdate non valid.");
         }
         return 0;
+    }
+
+    @Override
+    public List<Person> getPersonsByFirestationNumber(int fireStationNumber) {
+        List<Person> result = new ArrayList<>();
+
+        for (Person person : loadDataFile().getPersons()) {
+            if (getNbStationByAddressFromPerson(person) == fireStationNumber) {
+                result.add(person);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<Person> getPersonsByAddress(String address) {
+        return getPersons().stream()
+                .filter(person -> person.getAddress().contentEquals(address))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Firestations> getPersonsByStation(int stationNumber) {
+        return getFirestations().stream()
+                .filter(fireStation -> fireStation.getStation() == stationNumber)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -122,6 +119,36 @@ public class DataFileAccessImpl implements DataFileAccess {
     }
 
     @Override
+    public List<String> getMedicationsPerPerson(Person person) {
+        for (MedicalRecords medicalRecords : getMedicalrecords()) {
+            if (person.getFirstName().equals(medicalRecords.getFirstName()) &&
+                    person.getLastName().equals(medicalRecords.getLastName())) {
+                return medicalRecords.getMedications();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<String> getAllergiesPerPerson(Person person) {
+        for (MedicalRecords medicalRecords : getMedicalrecords()) {
+            if (person.getFirstName().equals(medicalRecords.getFirstName()) &&
+                    person.getLastName().equals(medicalRecords.getLastName())) {
+                return medicalRecords.getAllergies();
+            }
+        }
+        return null;
+        /* Be careful with this declarative code style:
+        return Collections.singletonList(getMedicalrecords().stream()
+                .filter(medicalRecords ->
+                        Boolean.parseBoolean(
+                                String.valueOf(person.getFirstName()
+                                        .equals(medicalRecords.getFirstName()))))
+                .map(MedicalRecords::getAllergies)
+                .toString());*/
+    }
+
+    @Override
     public List<Person> getPersons() {
         return new ArrayList<>(loadDataFile().getPersons());
     }
@@ -135,7 +162,6 @@ public class DataFileAccessImpl implements DataFileAccess {
     public List<MedicalRecords> getMedicalrecords() {
         return new ArrayList<>(loadDataFile().getMedicalrecords());
     }
-
 
 
 }
