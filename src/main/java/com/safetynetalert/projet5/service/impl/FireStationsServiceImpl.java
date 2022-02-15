@@ -6,6 +6,7 @@ import com.safetynetalert.projet5.controller.NoFloodPersonFoundException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
+import com.safetynetalert.projet5.service.MedicalRecordsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -22,6 +24,8 @@ public class FireStationsServiceImpl implements FireStationsService {
 
     @Autowired
     private DataFileAccess dataFileAccess;
+    @Autowired
+    private MedicalRecordsService medicalRecordsService;
     private MedicalRecords medicalRecords;
     private Firestations firestations;
 
@@ -144,33 +148,18 @@ public class FireStationsServiceImpl implements FireStationsService {
         return fireStationAddress;
     }
 
+    // if person.firstName == medicalRecords.firstName
+    //     if person.address == fireStation.address
+    //          traverse(personMap, medicalRecordMap, fireStationMap)
+    //          create fullInfoPerson
+    //          add the new fullInfoPerson to floodStationPerson object and return it
+    //  else if object empty, throw a personalized flood exception.
     @Override
-    public FloodStation getFloodStationsForPersons(int stationNumber) {
-        List<Person> personArray = dataFileAccess.getPersons() ;
-        List<Firestations> fireStationsArray = dataFileAccess.getFirestations();
-        ArrayList floodStation = new ArrayList<>(stationNumber);
-        // if person.firstName == medicalRecords.firstName
-        //     if person.address == fireStation.address
-        //          traverse(personMap, medicalRecordMap, fireStationMap)
-        //          create fullInfoPerson
-        //          add the new fullInfoPerson to floodStationPerson object and return it
-        //  else if object empty, throw a personalized flood exception.
-        /* pattern: Collection collection;
-           collection.forEach(name->{
-                  if(name.equals(a))){
-                      doSomething();
-                  }
-                  if(name.equals(b)){
-                      doSomethingElse();
-                  }
-                  if(name.equals(c)){
-                      doSomethingElseElse();
-                  }
-            });
-            Remark: make 3 sub problems for personArray.forEach(), fireStationsArray and medicalRecordArray
-            Then, combine the 3 to obtain a flood station object.
-        */
-        personArray.forEach(person -> {
+    public List<InfoByStation> getFloodStationsForPersons(List<Integer> stations) {
+        /*List<Person> combinedPersonArray = (List<Person>) getPersonFireStationMedicalInfo();
+        List<FullInfoPerson> floodStation = new ArrayList<>();
+
+        combinedPersonArray.forEach(person -> {
             if (person.getFirstName().equals(medicalRecords.getFirstName())) {
                 if (person.getAddress().equals(firestations.getAddress())) {
                     FullInfoPerson fullInfoPerson = new FullInfoPerson(
@@ -184,14 +173,93 @@ public class FireStationsServiceImpl implements FireStationsService {
                     floodStation.add(fullInfoPerson);
                 }
             }
-            if (CollectionUtils.isNotEmpty((Collection) floodStation)) {
+            if (CollectionUtils.isNotEmpty(floodStation)) {
                 log.info("Request get flood station per person is successful!");
-                //return new FloodStation(floodStation);
+                return new FloodStation(floodStation);
             }
             log.info("Request get flood station per person failed.");
-            //throw new NoFloodPersonFoundException(stationNumber);
-        });
+            throw new NoFloodPersonFoundException(stationNumberList);
+        });*/
+        List<InfoByStation> infoByStationList = new ArrayList<>();
+        int stationCounterRequest = 0;
+
+        if (stations != null) {
+            for (int stationNumber : stations) {
+                List<InfoByAddress> infoByAddressList = new ArrayList<>();
+                int index;
+
+                for (Person person : dataFileAccess.getPersons()) {
+                    List<Integer> stationArr = getStationByAddress(person.getAddress());
+                    if (isPartOfStation(stations.get(stationCounterRequest), stationArr)) {
+                        FullInfoPerson fullInfoPerson = new FullInfoPerson(person.getFirstName(), person.getLastName(),
+                                null, null, null, person.getPhone(), null,
+                                null, dataFileAccess.getAgeFromPerson(person),
+                                medicalRecordsService.getMedicationsFromPerson(person),
+                                medicalRecordsService.getAllergiesFromPerson(person), 0);
+                        if ((index = InfoByAddressAlreadyExist(infoByAddressList, person)) != -1) {
+                            InfoByAddress infoByAddress = infoByAddressList.get(index);
+                            infoByAddress.addPerson(fullInfoPerson);
+                        } else {
+                            List<FullInfoPerson> fullInfoPersonList = new ArrayList<>();
+                            fullInfoPersonList.add(fullInfoPerson);
+                            infoByAddressList.add(new InfoByAddress(person.getAddress(), fullInfoPersonList));
+                        }
+
+                    }
+                }
+                stationCounterRequest++;
+                infoByStationList.add(new InfoByStation(infoByAddressList, stationNumber));
+            }
+        }
+        List<Integer> nbEmptyStationList;
+        if ((nbEmptyStationList = checkEmptyStation(infoByStationList)) == null) {
+            log.info("Request get person information with station list successful!");
+            return infoByStationList;
+        }
+        log.info("Request get person information with station list failed.");
+        throw new NoFirestationFoundException(nbEmptyStationList);
+    }
+
+    private boolean isPartOfStation(int station, List<Integer> stationArr) {
+        for (Integer stationNumber : stationArr) {
+            if (station == stationNumber)
+                return true;
+        }
+        return false;
+    }
+
+    private int InfoByAddressAlreadyExist(List<InfoByAddress> infoByAddressList, Person person) {
+        if (infoByAddressList.size() != 0) {
+            for (InfoByAddress infoByAddress : infoByAddressList) {
+                if (infoByAddress.getAddress().equals(person.getAddress())) {
+                    return infoByAddressList.indexOf(infoByAddress);
+                }
+            }
+        }
+        return -1;
+    }
+
+    private List<Integer> checkEmptyStation(List<InfoByStation> infoByStationList) {
+        List<Integer> nbEmptyStationList = new ArrayList<>();
+
+        if (infoByStationList != null) {
+            for (InfoByStation infoByStation : infoByStationList) {
+                if (CollectionUtils.isEmpty(infoByStation.getListInfo())) {
+                    nbEmptyStationList.add(infoByStation.getStation());
+                }
+            }
+            if (CollectionUtils.isNotEmpty(nbEmptyStationList)) return nbEmptyStationList;
+        }
         return null;
+    }
+
+    private List<?> getPersonFireStationMedicalInfo() {
+        return Stream.of(
+                        dataFileAccess.getPersons(),
+                        dataFileAccess.getFirestations(),
+                        dataFileAccess.getMedicalrecords())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
 }

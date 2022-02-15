@@ -18,6 +18,6 @@ public interface FireStationsService {
 
     FirePerson getFirePersonByAddress(String address);
 
-    FloodStation getFloodStationsForPersons(int stationNumber);
+    List<InfoByStation> getFloodStationsForPersons(List<Integer> stationNumberList);
 
 }

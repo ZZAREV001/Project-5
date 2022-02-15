@@ -41,8 +41,8 @@ public class DataController {
     }
 
     @GetMapping(value = "/flood/stations", produces = "application/json")
-    public FloodStation getFloodStations(@RequestParam int stationNumber) {
-        return fireStationsService.getFloodStationsForPersons(stationNumber);
+    public List<InfoByStation> getFloodStations(@RequestBody List<Integer> stationNumberList) {
+        return fireStationsService.getFloodStationsForPersons(stationNumberList);
     }
 
 

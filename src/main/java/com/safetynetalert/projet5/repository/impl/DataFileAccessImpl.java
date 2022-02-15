@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataFileAccessImpl implements DataFileAccess {
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
     private DataFile dataFile;
 
     @Autowired
