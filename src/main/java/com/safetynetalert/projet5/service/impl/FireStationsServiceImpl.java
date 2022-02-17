@@ -3,6 +3,7 @@ package com.safetynetalert.projet5.service.impl;
 import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
 import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import com.safetynetalert.projet5.controller.NoFloodPersonFoundException;
+import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
@@ -126,60 +127,8 @@ public class FireStationsServiceImpl implements FireStationsService {
         throw new NoChildFoundFromAddressException(address);
     }
 
-    private List<Integer> getStationByAddress(String address) {
-        List<Integer> stationNumber = new ArrayList<>();
-
-        for (Firestations fireStation : dataFileAccess.getFirestations()) {
-            if (address.compareTo(fireStation.getAddress()) == 0) {
-                stationNumber.add(fireStation.getStation());
-            }
-        }
-        return stationNumber;
-    }
-
-    private List<String> getAddressByStation(int stationNumber) {
-        List<String> fireStationAddress = new ArrayList<>();
-
-        for (Firestations fireStation : dataFileAccess.getFirestations()) {
-            if (fireStation.getStation() == stationNumber) {
-                fireStationAddress.add(fireStation.getAddress());
-            }
-        }
-        return fireStationAddress;
-    }
-
-    // if person.firstName == medicalRecords.firstName
-    //     if person.address == fireStation.address
-    //          traverse(personMap, medicalRecordMap, fireStationMap)
-    //          create fullInfoPerson
-    //          add the new fullInfoPerson to floodStationPerson object and return it
-    //  else if object empty, throw a personalized flood exception.
     @Override
     public List<InfoByStation> getFloodStationsForPersons(List<Integer> stations) {
-        /*List<Person> combinedPersonArray = (List<Person>) getPersonFireStationMedicalInfo();
-        List<FullInfoPerson> floodStation = new ArrayList<>();
-
-        combinedPersonArray.forEach(person -> {
-            if (person.getFirstName().equals(medicalRecords.getFirstName())) {
-                if (person.getAddress().equals(firestations.getAddress())) {
-                    FullInfoPerson fullInfoPerson = new FullInfoPerson(
-                            person.getFirstName(), null,
-                            person.getAddress(), null,
-                            null, person.getPhone(),
-                            null, null,
-                            dataFileAccess.getAgeFromPerson(person),
-                            dataFileAccess.getMedicationsPerPerson(person),
-                            dataFileAccess.getAllergiesPerPerson(person),0);
-                    floodStation.add(fullInfoPerson);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(floodStation)) {
-                log.info("Request get flood station per person is successful!");
-                return new FloodStation(floodStation);
-            }
-            log.info("Request get flood station per person failed.");
-            throw new NoFloodPersonFoundException(stationNumberList);
-        });*/
         List<InfoByStation> infoByStationList = new ArrayList<>();
         int stationCounterRequest = 0;
 
@@ -191,7 +140,9 @@ public class FireStationsServiceImpl implements FireStationsService {
                 for (Person person : dataFileAccess.getPersons()) {
                     List<Integer> stationArr = getStationByAddress(person.getAddress());
                     if (isPartOfStation(stations.get(stationCounterRequest), stationArr)) {
-                        FullInfoPerson fullInfoPerson = new FullInfoPerson(person.getFirstName(), person.getLastName(),
+                        FullInfoPerson fullInfoPerson = new FullInfoPerson(
+                                person.getFirstName(),
+                                person.getLastName(),
                                 null, null, null, person.getPhone(), null,
                                 null, dataFileAccess.getAgeFromPerson(person),
                                 medicalRecordsService.getMedicationsFromPerson(person),
@@ -202,9 +153,9 @@ public class FireStationsServiceImpl implements FireStationsService {
                         } else {
                             List<FullInfoPerson> fullInfoPersonList = new ArrayList<>();
                             fullInfoPersonList.add(fullInfoPerson);
-                            infoByAddressList.add(new InfoByAddress(person.getAddress(), fullInfoPersonList));
+                            infoByAddressList.add(new InfoByAddress(person.getAddress(),
+                                    fullInfoPersonList));
                         }
-
                     }
                 }
                 stationCounterRequest++;
@@ -218,6 +169,38 @@ public class FireStationsServiceImpl implements FireStationsService {
         }
         log.info("Request get person information with station list failed.");
         throw new NoFirestationFoundException(nbEmptyStationList);
+    }
+
+    /* Call the entire hash table from the JSON data file and traverse it with these filters:
+          if person.firstName == firstName and person.lastName == lastName
+             create fullInfoPerson object with firstName, lastName, email, medication array and
+             allergies array
+             add this fullInfoPerson object to PersonInfo object and return it is not empty.
+          throw a personalized NoPersonInfoFoundException.
+     */
+
+    @Override
+    public PersonInfo getPersonInfo(String firstName, String lastName) {
+        List<FullInfoPerson> listPersonsInfo = new ArrayList<>();
+
+        for (Person person : dataFileAccess.getPersonsByAddressWithNames(firstName, lastName)) {
+            if (person.getFirstName().equals(firstName) && person.getLastName().equals(lastName)) {
+                FullInfoPerson fullInfoPerson = new FullInfoPerson(
+                        person.getFirstName(),
+                        person.getLastName(),
+                        person.getAddress(), null, null, null, person.getEmail(),
+                        null, 0,
+                        medicalRecordsService.getMedicationsFromPerson(person),
+                        medicalRecordsService.getAllergiesFromPerson(person), 0);
+                listPersonsInfo.add(fullInfoPerson);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(listPersonsInfo)) {
+            log.info("Request get persons per fire station is successful!");
+            return new PersonInfo(listPersonsInfo);
+        }
+        log.info("Request get fire station failed.");
+        throw new NoPersonFoundFromNamesException(firstName, lastName);
     }
 
     private boolean isPartOfStation(int station, List<Integer> stationArr) {
@@ -251,6 +234,28 @@ public class FireStationsServiceImpl implements FireStationsService {
             if (CollectionUtils.isNotEmpty(nbEmptyStationList)) return nbEmptyStationList;
         }
         return null;
+    }
+
+    private List<Integer> getStationByAddress(String address) {
+        List<Integer> stationNumber = new ArrayList<>();
+
+        for (Firestations fireStation : dataFileAccess.getFirestations()) {
+            if (address.compareTo(fireStation.getAddress()) == 0) {
+                stationNumber.add(fireStation.getStation());
+            }
+        }
+        return stationNumber;
+    }
+
+    private List<String> getAddressByStation(int stationNumber) {
+        List<String> fireStationAddress = new ArrayList<>();
+
+        for (Firestations fireStation : dataFileAccess.getFirestations()) {
+            if (fireStation.getStation() == stationNumber) {
+                fireStationAddress.add(fireStation.getAddress());
+            }
+        }
+        return fireStationAddress;
     }
 
     private List<?> getPersonFireStationMedicalInfo() {

@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ControllerAdvisor extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LogManager.getLogger(ControllerAdvisor.class);
-/*
+    /*
     @ExceptionHandler(NoFirestationFoundException.class)
     @ResponseBody
     public ResponseEntity<?> handleNoFirestationFoundException(NoFirestationFoundException e) {

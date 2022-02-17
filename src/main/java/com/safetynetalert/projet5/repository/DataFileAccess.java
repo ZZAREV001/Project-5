@@ -30,4 +30,6 @@ public interface DataFileAccess {
     List<Firestations> getFirestations();
 
     List<MedicalRecords> getMedicalrecords();
+
+    Iterable<? extends Person> getPersonsByAddressWithNames(String firstName, String lastName);
 }

@@ -149,6 +149,16 @@ public class DataFileAccessImpl implements DataFileAccess {
     }
 
     @Override
+    public List<Person> getPersonsByAddressWithNames(String firstName, String lastName) {
+        return getPersons().stream()
+                .filter(person -> person.getFirstName().contentEquals(firstName) &&
+                        person.getLastName().contentEquals(lastName))
+                .filter(medicalRecords -> medicalRecords.getFirstName().contentEquals(firstName) &&
+                        medicalRecords.getLastName().contentEquals(lastName))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<Person> getPersons() {
         return new ArrayList<>(loadDataFile().getPersons());
     }

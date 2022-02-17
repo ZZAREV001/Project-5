@@ -45,6 +45,11 @@ public class DataController {
         return fireStationsService.getFloodStationsForPersons(stationNumberList);
     }
 
+    @GetMapping(value = "/personInfo", produces = "application/json")
+    public PersonInfo getPersonInfo(@RequestParam String firstName, @RequestParam String lastName) {
+        return fireStationsService.getPersonInfo(firstName, lastName);
+    }
+
 
 
 }

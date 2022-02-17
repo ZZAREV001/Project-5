@@ -2,10 +2,8 @@ package com.safetynetalert.projet5.service.impl;
 
 import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
 import com.safetynetalert.projet5.controller.NoFirestationFoundException;
-import com.safetynetalert.projet5.model.ChildAlert;
-import com.safetynetalert.projet5.model.FirePerson;
-import com.safetynetalert.projet5.model.FirestationsZone;
-import com.safetynetalert.projet5.model.Person;
+import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
+import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.repository.impl.DataFileAccessImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -65,11 +64,12 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
 
         // When
-        ChildAlert childFromMedicalRecords = underTest.getChildFromMedicalRecords(address);
+        ChildAlert response = underTest.getChildFromMedicalRecords(address);
 
         // Then
-        assertThat(childFromMedicalRecords).isNotNull();
-        assertDoesNotThrow(() -> new NoChildFoundFromAddressException(address));
+        assertThat(response).isNotNull();
+        assertThatThrownBy(() -> new NoChildFoundFromAddressException(address))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -121,5 +121,21 @@ class FireStationsServiceImplTest {
         // Given
         // When
         // Then
+    }
+
+    @Test
+    void iTShouldGetPersonInfo() {
+        // Given
+        String firstName = "abvx";
+        String lastName = "bsbd";
+        PersonInfo personInfo = new PersonInfo();
+
+        // When
+        PersonInfo personInfoList = underTest.getPersonInfo(firstName, lastName);
+        when(personInfoList).thenReturn(personInfo);
+
+        // Then
+        assertThat(personInfoList).isNotNull();
+        assertDoesNotThrow(() -> new NoPersonFoundFromNamesException(firstName, lastName));
     }
 }

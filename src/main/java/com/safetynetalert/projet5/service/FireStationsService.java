@@ -20,4 +20,5 @@ public interface FireStationsService {
 
     List<InfoByStation> getFloodStationsForPersons(List<Integer> stationNumberList);
 
+    PersonInfo getPersonInfo(String firstName, String lastName);
 }

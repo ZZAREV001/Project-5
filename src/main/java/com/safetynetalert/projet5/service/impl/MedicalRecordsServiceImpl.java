@@ -5,6 +5,9 @@ import com.safetynetalert.projet5.model.MedicalRecords;
 import com.safetynetalert.projet5.model.Person;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.MedicalRecordsService;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +16,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Slf4j
+@AllArgsConstructor
+@NoArgsConstructor
 public class MedicalRecordsServiceImpl implements MedicalRecordsService {
-
-    private static final Logger log = LogManager.getLogger(ControllerAdvisor.class);
 
     @Autowired
     private DataFileAccess dataFileAccess;
+
 
     @Override
     public List<String> getMedicationsFromPerson(Person person) {

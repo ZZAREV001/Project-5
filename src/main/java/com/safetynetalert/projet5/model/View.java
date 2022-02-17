@@ -66,4 +66,7 @@ public class View {
 
     public interface FilterFullInfoByName extends FullFirstName, FullLastName, FullAddress, FullCity, FullZip, FullEmail, FullAge, FullMedications, FullAllergies {
     }
+
+    public interface FilterPersonInfoEndpoints extends FullFirstName, FullLastName, FullEmail, FullMedications, FullAllergies {
+    }
 }
