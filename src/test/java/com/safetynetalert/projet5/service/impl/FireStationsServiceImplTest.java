@@ -5,15 +5,17 @@ import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
-import com.safetynetalert.projet5.repository.impl.DataFileAccessImpl;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,10 +51,11 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getAgeFromPerson(person1)).willReturn(age);
 
         // When
-        FirestationsZone fireStationZone = underTest.getFireStationZone(stationNumber);
 
         // Then
-        assertThat(fireStationZone).isNotNull();
+        if (CollectionUtils.isNotEmpty(result)) {
+            assertThat(underTest.getFireStationZone(stationNumber)).isNotNull();
+        }
         assertDoesNotThrow(() -> new NoFirestationFoundException(List.of(stationNumber)));
     }
 
@@ -64,12 +67,12 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
 
         // When
-        ChildAlert response = underTest.getChildFromMedicalRecords(address);
 
         // Then
-        assertThat(response).isNotNull();
-        assertThatThrownBy(() -> new NoChildFoundFromAddressException(address))
-                .doesNotThrowAnyException();
+        if (CollectionUtils.isNotEmpty(personList)) {
+            assertThat(underTest.getChildFromMedicalRecords(address)).isNotNull();
+        }
+        assertDoesNotThrow(() -> new NoChildFoundFromAddressException(address));
     }
 
     @Test
@@ -80,10 +83,11 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getPersons()).willReturn(personList);
 
         // When
-        List<String> phoneAlertFromFireStations = underTest.getPhoneAlertFromFireStations(stationNumber);
 
         // Then
-        assertThat(phoneAlertFromFireStations).isNotNull();
+        if (CollectionUtils.isNotEmpty(personList)) {
+            assertThat(underTest.getPhoneAlertFromFireStations(stationNumber)).isNotNull();
+        }
         assertDoesNotThrow(() -> new NoFirestationFoundException(List.of(stationNumber)));
     }
 
@@ -109,18 +113,27 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
 
         // When
-        FirePerson firePersonByAddress = underTest.getFirePersonByAddress(address);
 
         // Then
-        assertThat(firePersonByAddress).isNotNull();
+        if (CollectionUtils.isNotEmpty(personList)) {
+            FirePerson firePersonByAddress = underTest.getFirePersonByAddress(address);
+            assertThat(firePersonByAddress).isNotNull();
+        }
         assertDoesNotThrow(() -> new NoChildFoundFromAddressException(address));
     }
 
     @Test
     void iTShouldGetFloodStationsForPersons() {
         // Given
+        List<Integer> stations = new ArrayList<>();
+        List<Person> personsList = new ArrayList<>();
+        given(dataFileAccess.getPersons()).willReturn(personsList);
+
         // When
+        List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
+
         // Then
+        assertThat(floodStationsForPersons).isNotNull();
     }
 
     @Test
@@ -128,14 +141,19 @@ class FireStationsServiceImplTest {
         // Given
         String firstName = "abvx";
         String lastName = "bsbd";
-        PersonInfo personInfo = new PersonInfo();
+        List<FullInfoPerson> personInfo = new ArrayList<>();
+        List<Person> personsByAddressWithNames = (List<Person>) dataFileAccess
+                .getPersonsByAddressWithNames(firstName, lastName);
+        List<Person> personInfoList = new ArrayList<>();
+        given(personsByAddressWithNames).willReturn(personInfoList);
 
         // When
-        PersonInfo personInfoList = underTest.getPersonInfo(firstName, lastName);
-        when(personInfoList).thenReturn(personInfo);
+        if (CollectionUtils.isNotEmpty(personInfo)) {
+            underTest.getPersonInfo(firstName, lastName);
+        }
 
         // Then
-        assertThat(personInfoList).isNotNull();
+        assertThat(personInfo).isNotNull();
         assertDoesNotThrow(() -> new NoPersonFoundFromNamesException(firstName, lastName));
     }
 }

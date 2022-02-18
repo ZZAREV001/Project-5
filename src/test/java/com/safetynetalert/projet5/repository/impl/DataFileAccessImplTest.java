@@ -30,12 +30,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataFileAccessImplTest {
 
     @Mock
-    private Person person;
-    @Mock
-    private MedicalRecords medicalRecords;
-    @Mock
-    private Firestations fireStations;
-    @Mock
     private DataFile dataFile;
     @Mock
     private ObjectMapper objectMapper;

@@ -141,8 +141,7 @@ public class FireStationsServiceImpl implements FireStationsService {
                     List<Integer> stationArr = getStationByAddress(person.getAddress());
                     if (isPartOfStation(stations.get(stationCounterRequest), stationArr)) {
                         FullInfoPerson fullInfoPerson = new FullInfoPerson(
-                                person.getFirstName(),
-                                person.getLastName(),
+                                person.getFirstName(), person.getLastName(),
                                 null, null, null, person.getPhone(), null,
                                 null, dataFileAccess.getAgeFromPerson(person),
                                 medicalRecordsService.getMedicationsFromPerson(person),
@@ -178,7 +177,6 @@ public class FireStationsServiceImpl implements FireStationsService {
              add this fullInfoPerson object to PersonInfo object and return it is not empty.
           throw a personalized NoPersonInfoFoundException.
      */
-
     @Override
     public PersonInfo getPersonInfo(String firstName, String lastName) {
         List<FullInfoPerson> listPersonsInfo = new ArrayList<>();
