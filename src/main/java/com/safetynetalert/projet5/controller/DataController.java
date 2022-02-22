@@ -1,7 +1,9 @@
 package com.safetynetalert.projet5.controller;
 
 import com.safetynetalert.projet5.model.*;
+import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
+import com.safetynetalert.projet5.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,8 @@ public class DataController {
 
     @Autowired
     private FireStationsService fireStationsService;
+    @Autowired
+    private PersonService personService;
 
 
     @GetMapping(value = "/firestation", produces = "application/json")
@@ -41,13 +45,18 @@ public class DataController {
     }
 
     @GetMapping(value = "/flood/stations", produces = "application/json")
-    public List<InfoByStation> getFloodStations(@RequestBody List<Integer> stationNumberList) {
+    public List<InfoByStation> getFloodStations(@RequestParam List<Integer> stationNumberList) {
         return fireStationsService.getFloodStationsForPersons(stationNumberList);
     }
 
     @GetMapping(value = "/personInfo", produces = "application/json")
     public PersonInfo getPersonInfo(@RequestParam String firstName, @RequestParam String lastName) {
         return fireStationsService.getPersonInfo(firstName, lastName);
+    }
+
+    @PostMapping(value = "/person")
+    public Person createNewPerson(@RequestBody Person model) {
+        return personService.savePerson(model);
     }
 
 

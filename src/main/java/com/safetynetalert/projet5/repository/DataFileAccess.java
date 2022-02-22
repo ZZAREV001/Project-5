@@ -32,4 +32,6 @@ public interface DataFileAccess {
     List<MedicalRecords> getMedicalrecords();
 
     Iterable<? extends Person> getPersonsByAddressWithNames(String firstName, String lastName);
+
+    Person savePerson(Person model);
 }

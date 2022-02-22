@@ -1,12 +1,14 @@
 package com.safetynetalert.projet5.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import lombok.NoArgsConstructor;
 
 
 import java.util.List;
 import java.util.Objects;
 
 @JsonView(View.FirestationById.class)
+@NoArgsConstructor
 public class FirestationsZone {
 
     private List<Person> persons;
@@ -18,6 +20,7 @@ public class FirestationsZone {
         this.adults = adults;
         this.children = children;
     }
+
 
     public List<Person> getPersons() {
         return persons;

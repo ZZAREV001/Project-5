@@ -173,5 +173,26 @@ public class DataFileAccessImpl implements DataFileAccess {
         return new ArrayList<>(loadDataFile().getMedicalrecords());
     }
 
+    @Override
+    public Person savePerson(Person model) {
+        if (model != null) {
+            boolean i;
+            if (getPersons() != null) {
+                i = getPersons().stream()
+                        .noneMatch(person -> person.equals(model));
+                if (i) {
+                    getPersons().add(model);
+                    return model;
+                }
+            } else {
+                List<Person> personList = new ArrayList<>();
+                personList.add(model);
+                loadDataFile().setPersons(personList);
+                return model;
+            }
+        }
+        return null;
+    }
+
 
 }
