@@ -2,7 +2,6 @@ package com.safetynetalert.projet5.service.impl;
 
 import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
 import com.safetynetalert.projet5.controller.NoFirestationFoundException;
-import com.safetynetalert.projet5.controller.NoFloodPersonFoundException;
 import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
@@ -170,13 +169,6 @@ public class FireStationsServiceImpl implements FireStationsService {
         throw new NoFirestationFoundException(nbEmptyStationList);
     }
 
-    /* Call the entire hash table from the JSON data file and traverse it with these filters:
-          if person.firstName == firstName and person.lastName == lastName
-             create fullInfoPerson object with firstName, lastName, email, medication array and
-             allergies array
-             add this fullInfoPerson object to PersonInfo object and return it is not empty.
-          throw a personalized NoPersonInfoFoundException.
-     */
     @Override
     public PersonInfo getPersonInfo(String firstName, String lastName) {
         List<FullInfoPerson> listPersonsInfo = new ArrayList<>();
@@ -199,6 +191,14 @@ public class FireStationsServiceImpl implements FireStationsService {
         }
         log.info("Request get fire station failed.");
         throw new NoPersonFoundFromNamesException(firstName, lastName);
+    }
+
+    @Override
+    public Person savePerson(Person newPerson) {
+        Person result = dataFileAccess.savePerson(newPerson);
+        if (result != null) log.info("Request save person successful!");
+        log.info("Request save person failed.");
+        return result;
     }
 
     private boolean isPartOfStation(int station, List<Integer> stationArr) {

@@ -3,10 +3,8 @@ package com.safetynetalert.projet5.controller;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
-import com.safetynetalert.projet5.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -16,7 +14,7 @@ public class DataController {
     @Autowired
     private FireStationsService fireStationsService;
     @Autowired
-    private PersonService personService;
+    private DataFileAccess dataFileAccess;
 
 
     @GetMapping(value = "/firestation", produces = "application/json")
@@ -55,8 +53,8 @@ public class DataController {
     }
 
     @PostMapping(value = "/person")
-    public Person createNewPerson(@RequestBody Person model) {
-        return personService.savePerson(model);
+    public Person createNewPerson(@RequestBody Person newPerson) {
+        return fireStationsService.savePerson(newPerson);
     }
 
 

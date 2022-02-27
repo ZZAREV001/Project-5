@@ -12,14 +12,13 @@ import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -56,7 +55,8 @@ class FireStationsServiceImplTest {
         if (CollectionUtils.isNotEmpty(result)) {
             assertThat(underTest.getFireStationZone(stationNumber)).isNotNull();
         }
-        assertDoesNotThrow(() -> new NoFirestationFoundException(List.of(stationNumber)));
+        assertThatExceptionOfType(NoFirestationFoundException.class)
+                .isThrownBy(() -> underTest.getFireStationZone(stationNumber));
     }
 
     @Test
@@ -72,7 +72,8 @@ class FireStationsServiceImplTest {
         if (CollectionUtils.isNotEmpty(personList)) {
             assertThat(underTest.getChildFromMedicalRecords(address)).isNotNull();
         }
-        assertDoesNotThrow(() -> new NoChildFoundFromAddressException(address));
+        assertThatExceptionOfType(NoChildFoundFromAddressException.class)
+                .isThrownBy(() -> underTest.getChildFromMedicalRecords(address));
     }
 
     @Test
@@ -88,7 +89,8 @@ class FireStationsServiceImplTest {
         if (CollectionUtils.isNotEmpty(personList)) {
             assertThat(underTest.getPhoneAlertFromFireStations(stationNumber)).isNotNull();
         }
-        assertDoesNotThrow(() -> new NoFirestationFoundException(List.of(stationNumber)));
+        assertThatExceptionOfType(NoFirestationFoundException.class)
+                .isThrownBy(() -> underTest.getPhoneAlertFromFireStations(stationNumber));
     }
 
     @Test
@@ -119,7 +121,8 @@ class FireStationsServiceImplTest {
             FirePerson firePersonByAddress = underTest.getFirePersonByAddress(address);
             assertThat(firePersonByAddress).isNotNull();
         }
-        assertDoesNotThrow(() -> new NoChildFoundFromAddressException(address));
+        assertThatExceptionOfType(NoChildFoundFromAddressException.class)
+                .isThrownBy(() -> underTest.getFirePersonByAddress(address));
     }
 
     @Test
@@ -134,6 +137,9 @@ class FireStationsServiceImplTest {
 
         // Then
         assertThat(floodStationsForPersons).isNotNull();
+        /* Problem with exception: assertThatThrownBy(() -> new NoFirestationFoundException(stations))
+                .isInstanceOf(NoFirestationFoundException.class)
+                .hasMessageContaining("No Firestation(s) found for number : " + stations + " !");*/
     }
 
     @Test
@@ -154,6 +160,7 @@ class FireStationsServiceImplTest {
 
         // Then
         assertThat(personInfo).isNotNull();
-        assertDoesNotThrow(() -> new NoPersonFoundFromNamesException(firstName, lastName));
+        assertThatExceptionOfType(NoPersonFoundFromNamesException.class)
+                .isThrownBy(() -> underTest.getPersonInfo(firstName, lastName));
     }
 }

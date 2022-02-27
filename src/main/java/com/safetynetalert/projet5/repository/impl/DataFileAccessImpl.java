@@ -174,25 +174,19 @@ public class DataFileAccessImpl implements DataFileAccess {
     }
 
     @Override
-    public Person savePerson(Person model) {
-        if (model != null) {
-            boolean i;
-            if (getPersons() != null) {
-                i = getPersons().stream()
-                        .noneMatch(person -> person.equals(model));
-                if (i) {
-                    getPersons().add(model);
-                    return model;
-                }
-            } else {
-                List<Person> personList = new ArrayList<>();
-                personList.add(model);
-                loadDataFile().setPersons(personList);
-                return model;
-            }
-        }
-        return null;
+    public Person savePerson(Person newPerson) {
+        do {
+            List<Person> personList = new ArrayList<>();
+            personList.add(newPerson);
+            loadDataFile().setPersons(personList);
+            return newPerson;
+        } while (newPerson != null && getPersons() != null
+                && isPersonNoneMatch(newPerson));
     }
-
+    
+    private boolean isPersonNoneMatch(Person newPerson) {
+        return getPersons().stream()
+                .noneMatch(person -> person.equals(newPerson));
+    }
 
 }
