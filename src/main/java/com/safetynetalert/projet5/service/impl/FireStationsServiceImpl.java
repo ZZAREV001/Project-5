@@ -201,6 +201,14 @@ public class FireStationsServiceImpl implements FireStationsService {
         return result;
     }
 
+    @Override
+    public boolean deletePerson(Person existingPerson) {
+        boolean result = dataFileAccess.deletePerson(existingPerson);
+        if (result) log.info("Request delete person successful!");
+        log.info("Request delete person failed.");
+        return result;
+    }
+
     private boolean isPartOfStation(int station, List<Integer> stationArr) {
         for (Integer stationNumber : stationArr) {
             if (station == stationNumber)

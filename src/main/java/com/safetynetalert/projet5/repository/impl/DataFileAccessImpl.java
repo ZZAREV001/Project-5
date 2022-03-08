@@ -3,8 +3,6 @@ package com.safetynetalert.projet5.repository.impl;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -173,20 +171,50 @@ public class DataFileAccessImpl implements DataFileAccess {
         return new ArrayList<>(loadDataFile().getMedicalrecords());
     }
 
+    // load list of persons - use getPersons() - test getPersons() receives new person - add() arrays
     @Override
     public Person savePerson(Person newPerson) {
-        do {
-            List<Person> personList = new ArrayList<>();
-            personList.add(newPerson);
-            loadDataFile().setPersons(personList);
-            return newPerson;
-        } while (newPerson != null && getPersons() != null
-                && isPersonNoneMatch(newPerson));
+        if (newPerson != null) {
+            boolean i;
+            if (loadDataFile().getPersons() != null) {
+                i = loadDataFile().getPersons().stream().noneMatch(person -> person.equals(newPerson));
+                if (i) {
+                    loadDataFile().getPersons().add(newPerson);
+                    return newPerson;
+                }
+            } else {
+                List<Person> personList = new ArrayList<>();
+                personList.add(newPerson);
+                loadDataFile().setPersons(personList);
+                return newPerson;
+            }
+        }
+        return null;
     }
-    
+
+    // Delete a person
+    @Override
+    public boolean deletePerson(Person existingPerson) {
+        if (existingPerson != null) {
+            if (loadDataFile().getPersons() != null) {
+                Optional<Person> personOptionalToDelete = loadDataFile().getPersons()
+                        .stream()
+                        .filter(person -> existingPerson.getFirstName().equals(person.getFirstName())
+                                && existingPerson.getLastName().equals(person.getLastName()))
+                        .findFirst();
+                if (personOptionalToDelete.isPresent()) {
+                    loadDataFile().getPersons().remove(personOptionalToDelete.get());
+                    return true;
+                }
+            } else loadDataFile().setPersons(new ArrayList<>());
+        }
+        return false;
+    }
+
     private boolean isPersonNoneMatch(Person newPerson) {
         return getPersons().stream()
                 .noneMatch(person -> person.equals(newPerson));
     }
+
 
 }

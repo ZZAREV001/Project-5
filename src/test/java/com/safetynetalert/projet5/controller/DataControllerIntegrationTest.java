@@ -4,8 +4,10 @@ import com.safetynetalert.projet5.model.FirestationsZone;
 import com.safetynetalert.projet5.model.Person;
 import com.safetynetalert.projet5.service.FireStationsService;
 import com.safetynetalert.projet5.service.impl.FireStationsServiceImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -51,9 +55,9 @@ class DataControllerIntegrationTest {
                 "841-874-8547", "reg@email.com");
         FirestationsZone firestationsZone = new FirestationsZone(Arrays.asList(person1, person2),
                 3, 6);
+        given(fireStationsService.getFireStationZone(stationNumber)).willReturn(firestationsZone);
 
         // When
-        when(fireStationsService.getFireStationZone(stationNumber)).thenReturn(firestationsZone);
         ResultActions resultActions = mockMvc.perform(get("/firestation?stationNumber=3"))
                 .andExpect(status().isOk())
                 .andExpect(content()
@@ -68,16 +72,18 @@ class DataControllerIntegrationTest {
         // Given
         int stationNumber = 2;
         List<String> personsList = new ArrayList<>();
+        BDDMockito.BDDMyOngoingStubbing<List<String>> listBDDMyOngoingStubbing =
+                given(fireStationsService.getPhoneAlertFromFireStations(stationNumber))
+                        .willReturn(personsList);
 
         // When
-        when(fireStationsService.getPhoneAlertFromFireStations(stationNumber)).thenReturn(personsList);
         ResultActions resultActions = mockMvc.perform(get("/phoneAlert?stationNumber=2"))
                 .andExpect(status().isOk())
                 .andExpect(content()
                         .string("[\"841-874-6513\",\"841-874-7878\",\"841-874-7512\",\"841-874-7512\",\"841-874-7458\"]"));
 
         // Then
-        assertThat(resultActions).isNotNull();
+        assertThat(resultActions).isEqualTo(listBDDMyOngoingStubbing);
     }
 
     @Test
@@ -85,9 +91,9 @@ class DataControllerIntegrationTest {
         // Given
         String city = "Culver";
         List<String> emailList = new ArrayList<>();
+        given(fireStationsService.getCommunityEmail(city)).willReturn(emailList);
 
         // When
-        when(fireStationsService.getCommunityEmail(city)).thenReturn(emailList);
         ResultActions resultActions = mockMvc.perform(get("/communityEmail?city=Culver"))
                 .andExpect(status().isOk())
                 .andExpect(content()

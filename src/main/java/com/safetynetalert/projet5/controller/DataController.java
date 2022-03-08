@@ -57,6 +57,11 @@ public class DataController {
         return fireStationsService.savePerson(newPerson);
     }
 
+    @DeleteMapping(value = "/person")
+    public boolean deletePerson(@RequestBody Person existingPerson) {
+        return fireStationsService.deletePerson(existingPerson);
+    }
+
 
 
 }

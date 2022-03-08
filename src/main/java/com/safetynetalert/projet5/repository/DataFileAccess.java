@@ -34,4 +34,6 @@ public interface DataFileAccess {
     Iterable<? extends Person> getPersonsByAddressWithNames(String firstName, String lastName);
 
     Person savePerson(Person model);
+
+    boolean deletePerson(Person existingPerson);
 }

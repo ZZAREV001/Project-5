@@ -23,4 +23,6 @@ public interface FireStationsService {
     PersonInfo getPersonInfo(String firstName, String lastName);
 
     Person savePerson(Person model);
+
+    boolean deletePerson(Person existingPerson);
 }
