@@ -1,7 +1,6 @@
 package com.safetynetalert.projet5.model;
 
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @NoArgsConstructor

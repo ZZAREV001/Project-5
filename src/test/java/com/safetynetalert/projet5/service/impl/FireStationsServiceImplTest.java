@@ -5,23 +5,20 @@ import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
+import com.safetynetalert.projet5.service.MedicalRecordsService;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 @AutoConfigureMockMvc
 class FireStationsServiceImplTest {
@@ -34,7 +31,7 @@ class FireStationsServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        underTest = new FireStationsServiceImpl(dataFileAccess);
+        underTest = new FireStationsServiceImpl(dataFileAccess, null);
     }
 
     @Test

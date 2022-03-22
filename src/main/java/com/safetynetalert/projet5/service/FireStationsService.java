@@ -24,5 +24,9 @@ public interface FireStationsService {
 
     Person savePerson(Person model);
 
+    Person updatePerson(Person existingPerson);
+
     boolean deletePerson(Person existingPerson);
+
+    Firestations saveFirestation(Firestations newFireStations);
 }

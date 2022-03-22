@@ -22,16 +22,17 @@ import java.util.stream.Stream;
 @Slf4j
 public class FireStationsServiceImpl implements FireStationsService {
 
-    @Autowired
-    private DataFileAccess dataFileAccess;
-    @Autowired
-    private MedicalRecordsService medicalRecordsService;
-    private MedicalRecords medicalRecords;
-    private Firestations firestations;
+    private final DataFileAccess dataFileAccess;
 
-    public FireStationsServiceImpl(DataFileAccess dataFileAccess) {
+    private final MedicalRecordsService medicalRecordsService;
+
+
+    @Autowired
+    public FireStationsServiceImpl(DataFileAccess dataFileAccess, MedicalRecordsService medicalRecordsService) {
         this.dataFileAccess = dataFileAccess;
+        this.medicalRecordsService = medicalRecordsService;
     }
+
 
     @Override
     public FirestationsZone getFireStationZone(int stationNumber) {
@@ -196,16 +197,44 @@ public class FireStationsServiceImpl implements FireStationsService {
     @Override
     public Person savePerson(Person newPerson) {
         Person result = dataFileAccess.savePerson(newPerson);
-        if (result != null) log.info("Request save person successful!");
-        log.info("Request save person failed.");
+        if (result != null) {
+            log.info("Request save person successful: " + newPerson);
+        } else {
+            log.info("Request save person failed: " + newPerson);
+        }
         return result;
     }
 
     @Override
     public boolean deletePerson(Person existingPerson) {
         boolean result = dataFileAccess.deletePerson(existingPerson);
-        if (result) log.info("Request delete person successful!");
-        log.info("Request delete person failed.");
+        if (result) {
+            log.info("Request delete person successful: " + existingPerson);
+        } else {
+            log.info("Request delete person failed: " + existingPerson);
+        }
+        return result;
+    }
+
+    @Override
+    public Person updatePerson(Person existingPerson) {
+        Person result = dataFileAccess.updatePerson(existingPerson);
+        if (result != null) {
+            log.info("Request update person successful: " + existingPerson);
+        } else {
+            log.info("Request update person failed: " + existingPerson);
+        }
+        return result;
+    }
+
+    @Override
+    public Firestations saveFirestation(Firestations newFireStations) {
+        Firestations result = dataFileAccess.saveFirestation(newFireStations);
+        if (result != null) {
+            log.info("Request save firestation successful!");
+        } else {
+            log.info("Request save firestation failed.");
+        }
         return result;
     }
 

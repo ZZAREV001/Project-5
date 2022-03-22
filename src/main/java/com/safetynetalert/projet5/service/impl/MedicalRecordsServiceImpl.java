@@ -17,13 +17,15 @@ import java.util.List;
 
 @Service
 @Slf4j
-@AllArgsConstructor
 @NoArgsConstructor
 public class MedicalRecordsServiceImpl implements MedicalRecordsService {
 
-    @Autowired
     private DataFileAccess dataFileAccess;
 
+    @Autowired
+    public MedicalRecordsServiceImpl(DataFileAccess dataFileAccess) {
+        this.dataFileAccess = dataFileAccess;
+    }
 
     @Override
     public List<String> getMedicationsFromPerson(Person person) {

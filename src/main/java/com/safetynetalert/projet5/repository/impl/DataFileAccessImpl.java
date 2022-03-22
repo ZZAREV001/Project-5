@@ -171,7 +171,6 @@ public class DataFileAccessImpl implements DataFileAccess {
         return new ArrayList<>(loadDataFile().getMedicalrecords());
     }
 
-    // load list of persons - use getPersons() - test getPersons() receives new person - add() arrays
     @Override
     public Person savePerson(Person newPerson) {
         if (newPerson != null) {
@@ -211,10 +210,46 @@ public class DataFileAccessImpl implements DataFileAccess {
         return false;
     }
 
-    private boolean isPersonNoneMatch(Person newPerson) {
-        return getPersons().stream()
-                .noneMatch(person -> person.equals(newPerson));
+    @Override
+    public Person updatePerson(Person existingPerson) {
+        if (existingPerson != null) {
+            if (loadDataFile().getPersons() != null) {
+                Optional<Person> personOptionalToUpdate = loadDataFile().getPersons().stream()
+                        .filter(person -> existingPerson.getFirstName().equals(person.getFirstName())
+                                && existingPerson.getLastName().equals(person.getLastName()))
+                        .findFirst();
+                if (personOptionalToUpdate.isPresent()) {
+                    loadDataFile().getPersons()
+                            .set(loadDataFile().getPersons()
+                                    .indexOf(personOptionalToUpdate.get()), existingPerson);
+                    return existingPerson;
+                }
+            } else loadDataFile().setPersons(new ArrayList<>());
+        }
+        return null;
     }
+
+    @Override
+    public Firestations saveFirestation(Firestations newFireStations) {
+        if (newFireStations != null) {
+            boolean i;
+            if (loadDataFile().getFirestations() != null) {
+                i = loadDataFile().getFirestations().stream()
+                        .noneMatch(firestations -> firestations.equals(newFireStations));
+                if (i) {
+                    loadDataFile().getFirestations().add(newFireStations);
+                    return newFireStations;
+                }
+            } else {
+                List<Firestations> firestationsList = new ArrayList<>();
+                firestationsList.add(newFireStations);
+                loadDataFile().setFirestations(firestationsList);
+                return newFireStations;
+            }
+        }
+        return null;
+    }
+
 
 
 }

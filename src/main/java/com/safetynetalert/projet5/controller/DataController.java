@@ -11,10 +11,12 @@ import java.util.List;
 @RestController
 public class DataController {
 
+    private final FireStationsService fireStationsService;
+
     @Autowired
-    private FireStationsService fireStationsService;
-    @Autowired
-    private DataFileAccess dataFileAccess;
+    public DataController(FireStationsService fireStationsService) {
+        this.fireStationsService = fireStationsService;
+    }
 
 
     @GetMapping(value = "/firestation", produces = "application/json")
@@ -57,9 +59,19 @@ public class DataController {
         return fireStationsService.savePerson(newPerson);
     }
 
+    @PutMapping(value = "/person")
+    public Person updatePerson(@RequestBody Person existingPerson) {
+        return fireStationsService.updatePerson(existingPerson);
+    }
+
     @DeleteMapping(value = "/person")
     public boolean deletePerson(@RequestBody Person existingPerson) {
         return fireStationsService.deletePerson(existingPerson);
+    }
+
+    @PostMapping(value = "/firestation")
+    public Firestations createFireStations(@RequestBody Firestations newFireStations) {
+        return fireStationsService.saveFirestation(newFireStations);
     }
 
 

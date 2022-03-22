@@ -36,4 +36,8 @@ public interface DataFileAccess {
     Person savePerson(Person model);
 
     boolean deletePerson(Person existingPerson);
+
+    Person updatePerson(Person existingPerson);
+
+    Firestations saveFirestation(Firestations newFireStations);
 }

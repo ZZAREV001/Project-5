@@ -40,7 +40,6 @@ class DataControllerIntegrationTest {
     @BeforeEach
     void setup() throws Exception {
         MockitoAnnotations.openMocks(this);
-        DataController underTest = new DataController();
     }
 
     @Test
