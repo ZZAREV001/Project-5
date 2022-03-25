@@ -40,4 +40,14 @@ public interface DataFileAccess {
     Person updatePerson(Person existingPerson);
 
     Firestations saveFirestation(Firestations newFireStations);
+
+    Firestations updateFirestation(Firestations existingFireStation);
+
+    MedicalRecords saveMedicalRecords(MedicalRecords newMedicalRecords);
+
+    MedicalRecords updateMedicalRecords(MedicalRecords existingMedicalRecords);
+
+    boolean deleteMedicalRecords(MedicalRecords existingMedicalRecords);
+
+    boolean deleteFireStation(Firestations existingFireStation);
 }

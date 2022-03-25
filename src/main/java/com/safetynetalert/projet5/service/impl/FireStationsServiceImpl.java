@@ -197,44 +197,90 @@ public class FireStationsServiceImpl implements FireStationsService {
     @Override
     public Person savePerson(Person newPerson) {
         Person result = dataFileAccess.savePerson(newPerson);
-        if (result != null) {
+        if (result != null)
             log.info("Request save person successful: " + newPerson);
-        } else {
+        else
             log.info("Request save person failed: " + newPerson);
-        }
         return result;
     }
 
     @Override
     public boolean deletePerson(Person existingPerson) {
         boolean result = dataFileAccess.deletePerson(existingPerson);
-        if (result) {
+        if (result)
             log.info("Request delete person successful: " + existingPerson);
-        } else {
+        else
             log.info("Request delete person failed: " + existingPerson);
-        }
         return result;
     }
 
     @Override
     public Person updatePerson(Person existingPerson) {
         Person result = dataFileAccess.updatePerson(existingPerson);
-        if (result != null) {
+        if (result != null)
             log.info("Request update person successful: " + existingPerson);
-        } else {
+        else
             log.info("Request update person failed: " + existingPerson);
-        }
         return result;
     }
 
     @Override
     public Firestations saveFirestation(Firestations newFireStations) {
         Firestations result = dataFileAccess.saveFirestation(newFireStations);
-        if (result != null) {
-            log.info("Request save firestation successful!");
-        } else {
-            log.info("Request save firestation failed.");
-        }
+        if (result != null)
+            log.info("Request save firestation successful: " + newFireStations);
+        else
+            log.info("Request save firestation failed: " + newFireStations);
+        return result;
+    }
+
+    @Override
+    public Firestations updateFireStation(Firestations existingFireStation) {
+        Firestations result = dataFileAccess.updateFirestation(existingFireStation);
+        if (result != null)
+            log.info("Request update firestation successful: " + existingFireStation);
+        else
+            log.info("Request update firestation failed: " + existingFireStation);
+        return result;
+    }
+
+    @Override
+    public boolean deleteFireStations(Firestations existingFireStation) {
+        boolean result = dataFileAccess.deleteFireStation(existingFireStation);
+        if (result)
+            log.info("Request delete fire station successful: " + existingFireStation);
+        else
+            log.info("Request delete fire station failed: " + existingFireStation);
+        return result;
+    }
+
+    @Override
+    public MedicalRecords saveMedicalRecords(MedicalRecords newMedicalRecords) {
+        MedicalRecords result = dataFileAccess.saveMedicalRecords(newMedicalRecords);
+        if (result != null)
+            log.info("Request create medical record successful: " + newMedicalRecords);
+        else
+            log.info("Request create medical record failed: " + newMedicalRecords);
+        return result;
+    }
+
+    @Override
+    public MedicalRecords updateMedicalRecords(MedicalRecords existingMedicalRecords) {
+        MedicalRecords result = dataFileAccess.updateMedicalRecords(existingMedicalRecords);
+        if (result != null)
+            log.info("Request update medical record successful: " + existingMedicalRecords);
+        else
+            log.info("Request update medical record failed: " + existingMedicalRecords);
+        return result;
+    }
+
+    @Override
+    public boolean deleteMedicalRecords(MedicalRecords existingMedicalRecords) {
+        boolean result = dataFileAccess.deleteMedicalRecords(existingMedicalRecords);
+        if (result)
+            log.info("Request delete medical record successful: " + existingMedicalRecords);
+        else
+            log.info("Request delete medical record failed: " + existingMedicalRecords);
         return result;
     }
 

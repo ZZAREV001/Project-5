@@ -29,4 +29,14 @@ public interface FireStationsService {
     boolean deletePerson(Person existingPerson);
 
     Firestations saveFirestation(Firestations newFireStations);
+
+    Firestations updateFireStation(Firestations existingFireStation);
+
+    MedicalRecords saveMedicalRecords(MedicalRecords newMedicalRecords);
+
+    MedicalRecords updateMedicalRecords(MedicalRecords existingMedicalRecords);
+
+    boolean deleteMedicalRecords(MedicalRecords existingMedicalRecords);
+
+    boolean deleteFireStations(Firestations existingFireStation);
 }

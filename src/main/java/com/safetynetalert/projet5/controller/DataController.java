@@ -74,6 +74,31 @@ public class DataController {
         return fireStationsService.saveFirestation(newFireStations);
     }
 
+    @PutMapping(value = "/firestation")
+    public Firestations updateFireStations(@RequestBody Firestations existingFireStation) {
+        return fireStationsService.updateFireStation(existingFireStation);
+    }
+
+    @DeleteMapping(value = "/firestation")
+    public boolean deleteFireStations(@RequestBody Firestations existingFireStation) {
+        return fireStationsService.deleteFireStations(existingFireStation);
+    }
+
+    @PostMapping(value = "/medicalrecords")
+    public MedicalRecords createMedicalRecords(@RequestBody MedicalRecords newMedicalRecords) {
+        return fireStationsService.saveMedicalRecords(newMedicalRecords);
+    }
+
+    @PutMapping(value = "/medicalrecords")
+    public MedicalRecords updateMedicalRecords(@RequestBody MedicalRecords existingMedicalRecords) {
+        return fireStationsService.updateMedicalRecords(existingMedicalRecords);
+    }
+
+    @DeleteMapping(value = "/medicalrecords")
+    public boolean deleteMedicalRecords(@RequestBody MedicalRecords existingMedicalRecords) {
+        return fireStationsService.deleteMedicalRecords(existingMedicalRecords);
+    }
+
 
 
 }

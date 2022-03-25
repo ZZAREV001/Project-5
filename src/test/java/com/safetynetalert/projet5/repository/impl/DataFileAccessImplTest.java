@@ -186,4 +186,73 @@ class DataFileAccessImplTest {
         // Then
         assertThat(medicalRecords).isNotNull();
     }
+
+    @Test
+    void iTShouldSavePerson() {
+        // Given
+        Person actualPerson = new Person("Hernandez", "Alejandra",
+                "2301 av Example 1", "Culver", "97451",
+                "841-349-1950", "Alejandra@abc.com");
+        // When
+        Person expectedPerson = underTest.savePerson(actualPerson);
+
+        // Then
+        assertThat(expectedPerson).isEqualTo(actualPerson);
+    }
+
+    @Test
+    void iTShouldUpdatePerson() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldDeletePerson() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldSaveFirestation() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldUpdateFirestation() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldDeleteFireStation() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldSaveMedicalRecords() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldUpdateMedicalRecords() {
+        // Given
+        // When
+        // Then
+    }
+
+    @Test
+    void iTShouldDeleteMedicalRecords() {
+        // Given
+        // When
+        // Then
+    }
 }

@@ -191,7 +191,25 @@ public class DataFileAccessImpl implements DataFileAccess {
         return null;
     }
 
-    // Delete a person
+    @Override
+    public Person updatePerson(Person existingPerson) {    // request failed despite a code 200
+        if (existingPerson != null) {
+            if (loadDataFile().getPersons() != null) {
+                Optional<Person> personOptionalToUpdate = loadDataFile().getPersons().stream()
+                        .filter(person -> existingPerson.getFirstName().equals(person.getFirstName())
+                                && existingPerson.getLastName().equals(person.getLastName()))
+                        .findFirst();
+                if (personOptionalToUpdate.isPresent()) {
+                    loadDataFile().getPersons()
+                            .set(loadDataFile().getPersons()
+                                    .indexOf(personOptionalToUpdate.get()), existingPerson);
+                    return existingPerson;
+                }
+            } else loadDataFile().setPersons(new ArrayList<>());
+        }
+        return null;
+    }
+
     @Override
     public boolean deletePerson(Person existingPerson) {
         if (existingPerson != null) {
@@ -208,25 +226,6 @@ public class DataFileAccessImpl implements DataFileAccess {
             } else loadDataFile().setPersons(new ArrayList<>());
         }
         return false;
-    }
-
-    @Override
-    public Person updatePerson(Person existingPerson) {
-        if (existingPerson != null) {
-            if (loadDataFile().getPersons() != null) {
-                Optional<Person> personOptionalToUpdate = loadDataFile().getPersons().stream()
-                        .filter(person -> existingPerson.getFirstName().equals(person.getFirstName())
-                                && existingPerson.getLastName().equals(person.getLastName()))
-                        .findFirst();
-                if (personOptionalToUpdate.isPresent()) {
-                    loadDataFile().getPersons()
-                            .set(loadDataFile().getPersons()
-                                    .indexOf(personOptionalToUpdate.get()), existingPerson);
-                    return existingPerson;
-                }
-            } else loadDataFile().setPersons(new ArrayList<>());
-        }
-        return null;
     }
 
     @Override
@@ -250,6 +249,99 @@ public class DataFileAccessImpl implements DataFileAccess {
         return null;
     }
 
+    @Override
+    public Firestations updateFirestation(Firestations existingFireStation) {
+        if (existingFireStation != null) {
+            if (loadDataFile().getFirestations() != null) {
+                Optional<Firestations> firestationOptionalToUpdate = loadDataFile().getFirestations()
+                        .stream()
+                        .filter(firestations -> firestations.getStation()
+                                == existingFireStation.getStation())
+                        .findFirst();
+                if (firestationOptionalToUpdate.isPresent()) {
+                    loadDataFile().getFirestations()
+                            .set(loadDataFile().getFirestations()
+                                    .indexOf(firestationOptionalToUpdate.get()), existingFireStation);
+                    return existingFireStation;
+                }
+            } else loadDataFile().setFirestations(new ArrayList<>());
+        }
+        return null;
+    }
+
+    @Override
+    public boolean deleteFireStation(Firestations existingFireStation) {
+        if (existingFireStation != null) {
+            if (loadDataFile().getFirestations() != null)
+                return loadDataFile().getFirestations().remove(existingFireStation);
+            else
+                loadDataFile().setFirestations(new ArrayList<>());
+        }
+        return false;
+    }
+
+    @Override
+    public MedicalRecords saveMedicalRecords(MedicalRecords newMedicalRecords) {
+        if (newMedicalRecords != null) {
+            boolean i;
+            if (loadDataFile().getMedicalrecords() != null) {
+                i = loadDataFile().getMedicalrecords().stream()
+                        .noneMatch(medicalRecords -> medicalRecords.equals(newMedicalRecords));
+                if (i) {
+                    loadDataFile().getMedicalrecords().add(newMedicalRecords);
+                    return newMedicalRecords;
+                }
+            } else {
+                List<MedicalRecords> medicalRecordsList = new ArrayList<>();
+                medicalRecordsList.add(newMedicalRecords);
+                return newMedicalRecords;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public MedicalRecords updateMedicalRecords(MedicalRecords existingMedicalRecords) {
+        if (existingMedicalRecords != null) {
+            if (loadDataFile().getMedicalrecords() != null) {
+                Optional<MedicalRecords> medicalRecordsOptionalToUpdate = loadDataFile()
+                        .getMedicalrecords()
+                        .stream()
+                        .filter(medicalRecords -> existingMedicalRecords.getFirstName()
+                                .equals(medicalRecords.getFirstName())
+                                && existingMedicalRecords.getLastName().equals(medicalRecords.getLastName()))
+                        .findFirst();
+
+                medicalRecordsOptionalToUpdate.ifPresent(medicalRecords -> loadDataFile()
+                        .getMedicalrecords()
+                        .set(loadDataFile()
+                                .getMedicalrecords()
+                                .indexOf(medicalRecords), existingMedicalRecords));
+                return existingMedicalRecords;
+            }
+        } else
+            loadDataFile().setMedicalrecords(new ArrayList<>());
+        return null;
+    }
+
+    @Override
+    public boolean deleteMedicalRecords(MedicalRecords existingMedicalRecords) {
+        if (existingMedicalRecords != null) {
+            if (loadDataFile().getMedicalrecords() != null) {
+                Optional<MedicalRecords> medicalRecordsOptionalToDelete = loadDataFile()
+                        .getMedicalrecords()
+                        .stream()
+                        .filter(medicalRecords -> existingMedicalRecords.getFirstName().equals(medicalRecords.getFirstName())
+                                && existingMedicalRecords.getLastName().equals(medicalRecords.getLastName()))
+                        .findFirst();
+                if (medicalRecordsOptionalToDelete.isPresent()) {
+                    loadDataFile().getMedicalrecords().remove(medicalRecordsOptionalToDelete.get());
+                    return true;
+                }
+            } else loadDataFile().setMedicalrecords(new ArrayList<>());
+        }
+        return false;
+    }
 
 
 }
