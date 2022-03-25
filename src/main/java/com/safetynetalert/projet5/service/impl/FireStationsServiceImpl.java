@@ -328,7 +328,8 @@ public class FireStationsServiceImpl implements FireStationsService {
         return stationNumber;
     }
 
-    private List<String> getAddressByStation(int stationNumber) {
+    // Not used helper methods but they can be used if we extend this class:
+    /*private List<String> getAddressByStation(int stationNumber) {
         List<String> fireStationAddress = new ArrayList<>();
 
         for (Firestations fireStation : dataFileAccess.getFirestations()) {
@@ -346,6 +347,6 @@ public class FireStationsServiceImpl implements FireStationsService {
                         dataFileAccess.getMedicalrecords())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-    }
+    }*/
 
 }

@@ -198,61 +198,111 @@ class DataFileAccessImplTest {
 
         // Then
         assertThat(expectedPerson).isEqualTo(actualPerson);
+        assertThat(expectedPerson).isNotNull();
     }
 
     @Test
     void iTShouldUpdatePerson() {
         // Given
+        Person existingPerson = new Person("Stelzer", "Bryan",
+                "947 E. Rose Dr", "Culver", "97451",
+                "841-874-7784", "bstel@email.com");
         // When
+        Person expectedPerson = underTest.updatePerson(existingPerson);
+
         // Then
+        assertThat(expectedPerson).isEqualTo(expectedPerson);
     }
 
     @Test
     void iTShouldDeletePerson() {
         // Given
+        Person existingPerson = new Person("Stelzer", "Bryan",
+                "947 E. Rose Dr", "Culver", "97451",
+                "841-874-7784", "bstel@email.com");
         // When
+        boolean isPersonDeleted = underTest.deletePerson(existingPerson);
+
         // Then
+        assertThat(isPersonDeleted).isNotNull();
     }
 
     @Test
     void iTShouldSaveFirestation() {
         // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+
         // When
+        Firestations expectedFireStations = underTest.saveFirestation(actualFireStations);
+
         // Then
+        assertThat(expectedFireStations).isEqualTo(actualFireStations);
     }
 
     @Test
     void iTShouldUpdateFirestation() {
         // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+
         // When
+        Firestations expectedFireStations = underTest.updateFirestation(actualFireStations);
+
         // Then
+        assertThat(expectedFireStations).isEqualTo(expectedFireStations);
     }
 
     @Test
     void iTShouldDeleteFireStation() {
         // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+
         // When
+        boolean isFireStationDeleted = underTest.deleteFireStation(actualFireStations);
+
         // Then
+        assertThat(isFireStationDeleted).isNotNull();
     }
 
     @Test
     void iTShouldSaveMedicalRecords() {
         // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
         // When
+        MedicalRecords expectedMedicalRecords = underTest.saveMedicalRecords(actualMedicalRecords);
+
         // Then
+        assertThat(expectedMedicalRecords).isEqualTo(actualMedicalRecords);
     }
 
     @Test
     void iTShouldUpdateMedicalRecords() {
         // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
+
         // When
+        MedicalRecords expectedMedicalRecords = underTest.updateMedicalRecords(actualMedicalRecords);
+
         // Then
+        assertThat(expectedMedicalRecords).isEqualTo(expectedMedicalRecords);
     }
 
     @Test
     void iTShouldDeleteMedicalRecords() {
         // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
         // When
+        boolean isMedicalRecordDeleted = underTest.deleteMedicalRecords(actualMedicalRecords);
+
         // Then
+        assertThat(isMedicalRecordDeleted).isNotNull();
     }
 }

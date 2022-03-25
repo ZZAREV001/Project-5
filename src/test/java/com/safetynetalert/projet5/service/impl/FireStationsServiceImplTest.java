@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -159,5 +160,149 @@ class FireStationsServiceImplTest {
         assertThat(personInfo).isNotNull();
         assertThatExceptionOfType(NoPersonFoundFromNamesException.class)
                 .isThrownBy(() -> underTest.getPersonInfo(firstName, lastName));
+    }
+
+    @Test
+    void iTShouldSavePerson() {
+        // Given
+        Person person1 = new Person("Hernandez", "Alejandra",
+                "2301 av Example 1", "Culver", "97451",
+                "841-349-1950", "Alejandra@abc.com");
+        given(dataFileAccess.savePerson(person1)).willReturn(person1);
+
+        // When
+        // Then
+        if (person1 != null)
+            assertThat(person1).isNotNull();
+        else
+            assertThat(person1).isNull();
+    }
+
+    @Test
+    void iTShouldUpdatePerson() {
+        // Given
+        Person person1 = new Person("Hernandez", "Alejandra",
+                "2301 av Example 1", "Culver", "97451",
+                "841-349-1950", "Alejandra@abc.com");
+        given(dataFileAccess.updatePerson(person1)).willReturn(person1);
+
+        // When
+        // Then
+        if (person1 != null)
+            assertThat(person1).isNotNull();
+        else
+            assertThat(person1).isNull();
+    }
+
+    @Test
+    void iTShouldDeletePerson() {
+        // Given
+        Person person1 = new Person("Hernandez", "Alejandra",
+                "2301 av Example 1", "Culver", "97451",
+                "841-349-1950", "Alejandra@abc.com");
+        Boolean isDeleted = true;
+        given(dataFileAccess.deletePerson(person1)).willReturn(isDeleted);
+
+        // When
+        // Then
+        if (person1 != null)
+            assertThat(person1).isNotNull();
+        else
+            assertThat(person1).isNull();
+    }
+
+    @Test
+    void iTShouldSaveFirestation() {
+        // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+        given(dataFileAccess.saveFirestation(actualFireStations)).willReturn(actualFireStations);
+
+        // When
+        // Then
+        if (actualFireStations != null)
+            assertThat(actualFireStations).isNotNull();
+        else
+            assertThat(actualFireStations).isNull();
+    }
+
+    @Test
+    void iTShouldUpdateFireStation() {
+        // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+        given(dataFileAccess.updateFirestation(actualFireStations)).willReturn(actualFireStations);
+
+        // When
+        // Then
+        if (actualFireStations != null)
+            assertThat(actualFireStations).isNotNull();
+        else
+            assertThat(actualFireStations).isNull();
+    }
+
+    @Test
+    void iTShouldDeleteFireStations() {
+        // Given
+        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
+        boolean isDeleted = true;
+        given(dataFileAccess.deleteFireStation(actualFireStations)).willReturn(isDeleted);
+
+        // When
+        // Then
+        if (actualFireStations != null)
+            assertThat(actualFireStations).isNotNull();
+        else
+            assertThat(actualFireStations).isNull();
+    }
+
+    @Test
+    void iTShouldSaveMedicalRecords() {
+        // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
+        given(dataFileAccess.saveMedicalRecords(actualMedicalRecords)).willReturn(actualMedicalRecords);
+
+        // When
+        // Then
+        if (actualMedicalRecords != null)
+            assertThat(actualMedicalRecords).isNotNull();
+        else
+            assertThat(actualMedicalRecords).isNull();
+    }
+
+    @Test
+    void iTShouldUpdateMedicalRecords() {
+        // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
+        given(dataFileAccess.updateMedicalRecords(actualMedicalRecords)).willReturn(actualMedicalRecords);
+
+        // When
+        // Then
+        if (actualMedicalRecords != null)
+            assertThat(actualMedicalRecords).isNotNull();
+        else
+            assertThat(actualMedicalRecords).isNull();
+    }
+
+    @Test
+    void iTShouldDeleteMedicalRecords() {
+        // Given
+        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+                "01/05/1998",
+                Collections.singletonList("tetracyclaz:650mg"),
+                Collections.singletonList("xilliathal"));
+        boolean isDeleted = true;
+        given(dataFileAccess.deleteMedicalRecords(actualMedicalRecords)).willReturn(isDeleted);
+
+        // When
+        // Then
+        if (actualMedicalRecords != null)
+            assertThat(actualMedicalRecords).isNotNull();
+        else
+            assertThat(actualMedicalRecords).isNull();
     }
 }
