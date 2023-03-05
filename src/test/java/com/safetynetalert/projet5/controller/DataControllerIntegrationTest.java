@@ -1,7 +1,8 @@
 package com.safetynetalert.projet5.controller;
 
-import com.safetynetalert.projet5.model.FirestationsZone;
-import com.safetynetalert.projet5.model.Person;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.service.FireStationsService;
 import com.safetynetalert.projet5.service.impl.FireStationsServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -14,7 +15,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +34,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DataControllerIntegrationTest {
 
     @Autowired
@@ -36,6 +43,8 @@ class DataControllerIntegrationTest {
 
     @MockBean
     private FireStationsService fireStationsService;
+
+    private TestRestTemplate restTemplate;
 
     @BeforeEach
     void setup() throws Exception {
@@ -45,80 +54,130 @@ class DataControllerIntegrationTest {
     @Test
     void iTShouldGetFireStationsByID() throws Exception {
         // Given
-        int stationNumber = 3;
-        Person person1 = new Person("Peter", "Duncan",
-                "644 Gershwin Cir", "Culver", "97451",
-                "841-874-6512", "jaboyd@email.com");
-        Person person2 = new Person("Reginold", "Walker",
-                "908 73rd St", "Culver", "97451",
-                "841-874-8547", "reg@email.com");
-        FirestationsZone firestationsZone = new FirestationsZone(Arrays.asList(person1, person2),
-                3, 6);
-        given(fireStationsService.getFireStationZone(stationNumber)).willReturn(firestationsZone);
+        int stationNumber = 1;
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Person> personList = List.of(
+                new Person("Doe", "John", "123 Main St", "Springfield", "12345", "555-1234", "john.doe@example.com"),
+                new Person("Doe", "Jane", "123 Main St", "Springfield", "12345", "555-5678", "jane.doe@example.com")
+        );
+        long nbAdults = 2;
+        long nbChildren = 0;
+        FirestationsZone expectedFirestationsZone = new FirestationsZone(personList, nbAdults, nbChildren);
+        given(fireStationsService.getFireStationZone(stationNumber)).willReturn(expectedFirestationsZone);
 
         // When
-        ResultActions resultActions = mockMvc.perform(get("/firestation?stationNumber=3"))
+        MvcResult mvcResult = mockMvc.perform(get("/firestation")
+                        .param("stationNumber", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content()
-                        .string("{\"persons\":[{\"firstName\":\"Peter\",\"lastName\":\"Duncan\",\"address\":\"644 Gershwin Cir\",\"city\":\"Culver\",\"zip\":\"97451\",\"phone\":\"841-874-6512\",\"email\":\"jaboyd@email.com\"},{\"firstName\":\"Reginold\",\"lastName\":\"Walker\",\"address\":\"908 73rd St\",\"city\":\"Culver\",\"zip\":\"97451\",\"phone\":\"841-874-8547\",\"email\":\"reg@email.com\"}],\"adults\":3,\"children\":6}"));
+                .andReturn();
 
         // Then
-        assertThat(resultActions).isNotNull();
+        String expectedResponse = objectMapper.writeValueAsString(expectedFirestationsZone);
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo(expectedResponse);
     }
 
     @Test
     void iTShouldGetPhoneAlert() throws Exception {
-        /*// Given
-        int stationNumber = 2;
-        List<String> personsList = new ArrayList<>();
-        BDDMockito.BDDMyOngoingStubbing<List<String>> listBDDMyOngoingStubbing =
-                given(fireStationsService.getPhoneAlertFromFireStations(stationNumber))
-                        .willReturn(personsList);
+        // Given
+        int stationNumber = 1;
+        String expectedPhoneNumber = "841-874-6513";
 
         // When
-        ResultActions resultActions = mockMvc.perform(get("/phoneAlert?stationNumber=2"))
+        MvcResult mvcResult = mockMvc.perform(get("/phoneAlert")
+                        .param("stationNumber", String.valueOf(stationNumber)))
                 .andExpect(status().isOk())
-                .andExpect(content()
-                        .string("[\"841-874-6513\",\"841-874-7878\",\"841-874-7512\",\"841-874-7512\",\"841-874-7458\"]"));
+                .andReturn();
+        String responseJson = mvcResult.getResponse().getContentAsString();
+        List<String> phoneNumberList = new ObjectMapper().readValue(responseJson, new TypeReference<>() {});
 
         // Then
-        assertThat(resultActions).isEqualTo(listBDDMyOngoingStubbing);*/
+        assertThat(phoneNumberList).contains(expectedPhoneNumber);
+    }
+
+    @Test
+    void getPhoneAlertFromFireStations_shouldThrowException_whenNoFirestationFound() throws Exception {
+        // Given
+        int stationNumber = 99;
+
+        // When
+        mockMvc.perform(get("/phoneAlert")
+                        .param("stationNumber", String.valueOf(stationNumber)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No firestation found for station number(s): [99]"));
     }
 
     @Test
     void iTShouldGetCommunityEmail() throws Exception {
-        /*// Given
-        String city = "Culver";
-        List<String> emailList = new ArrayList<>();
-        given(fireStationsService.getCommunityEmail(city)).willReturn(emailList);
+        String url = "/communityEmail?city=Culver";
 
-        // When
-        ResultActions resultActions = mockMvc.perform(get("/communityEmail?city=Culver"))
-                .andExpect(status().isOk())
-                .andExpect(content()
-                        .string("[\"jaboyd@email.com\",\"drk@email.com\",\"tenz@email.com\",\"jaboyd@email.com\",\"jaboyd@email.com\",\"drk@email.com\",\"tenz@email.com\",\"jaboyd@email.com\",\"jaboyd@email.com\",\"tcoop@ymail.com\",\"lily@email.com\",\"soph@email.com\",\"ward@email.com\",\"zarc@email.com\",\"reg@email.com\",\"jpeter@email.com\",\"jpeter@email.com\",\"aly@imail.com\",\"bstel@email.com\",\"ssanw@email.com\",\"bstel@email.com\",\"clivfd@ymail.com\",\"gramps@email.com\"]"));
-        // Then
-        assertThat(resultActions).isNotNull();*/
+        ResponseEntity<List<String>> responseEntity = restTemplate.exchange(
+                url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody()).hasSize(23);
     }
 
     @Test
-    void iTShouldGetChildAlert() {
+    public void testGetFireStationsByID() {
         // Given
+        int stationNumber = 1;
+
         // When
+        ResponseEntity<FirestationsZone> responseEntity = restTemplate.getForEntity("/firestation?stationNumber=" + stationNumber, FirestationsZone.class);
+        FirestationsZone firestationsZone = responseEntity.getBody();
+
         // Then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(firestationsZone).isNotNull();
     }
 
     @Test
-    void iTShouldGetFireAddress() {
+    void testGetFireAddress() {
         // Given
+        String address = "1509 Culver St";
+
         // When
+        ResponseEntity<FirePerson> response = restTemplate.getForEntity(
+                "/fire?address={address}",
+                FirePerson.class,
+                address
+        );
+
         // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        FirePerson firePerson = response.getBody();
+        assertThat(firePerson).isNotNull();
     }
 
     @Test
     void iTShouldGetFloodStations() {
         // Given
+        List<Integer> stationNumberList = Arrays.asList(1, 2, 3);
+
         // When
+        ResponseEntity<List<InfoByStation>> response = restTemplate.exchange("/flood/stations?stationNumberList=1,2,3",
+                HttpMethod.GET, null, new ParameterizedTypeReference<List<InfoByStation>>() {
+                });
+
         // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<InfoByStation> infoByStationList = response.getBody();
+        assertThat(infoByStationList).isNotNull();
+        assertThat(infoByStationList).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    public void givenPersonInfoRequest_whenCorrectParams_thenResponseIsOk() throws Exception {
+        // Given
+        String firstName = "John";
+        String lastName = "Doe";
+
+        // When
+        ResponseEntity<PersonInfo> response = restTemplate.getForEntity("/personInfo?firstName={firstName}&lastName={lastName}", PersonInfo.class, firstName, lastName);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
     }
 }

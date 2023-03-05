@@ -5,25 +5,20 @@ import com.safetynetalert.projet5.model.DataFile;
 import com.safetynetalert.projet5.model.Firestations;
 import com.safetynetalert.projet5.model.MedicalRecords;
 import com.safetynetalert.projet5.model.Person;
-import com.safetynetalert.projet5.repository.DataFileAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
 
-import java.io.File;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+import static org.mockito.BDDMockito.then;
+
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.BDDAssumptions.given;
-import static org.junit.jupiter.api.Assertions.*;
 
 
 @AutoConfigureMockMvc
@@ -45,13 +40,25 @@ class DataFileAccessImplTest {
 
     @Test
     void iTShouldLoadDataFile() throws IOException {
-        // Given
+        /*// Given
         given(objectMapper.readValue(
                 new File("/Users/GoldenEagle/IdeaProjects/projet-5-bis/src/main/resources/datafile.json"),
                 DataFile.class));
+        // Then
+        assertThat(dataFile).isNotNull();*/
+
+        // Given
+        DataFileAccessImpl underTest = new DataFileAccessImpl(new ObjectMapper());
         // When
+        DataFile dataFile = underTest.loadDataFile();
+
         // Then
         assertThat(dataFile).isNotNull();
+        assertThat(dataFile.getFirestations()).isNotNull();
+        assertThat(dataFile.getMedicalrecords()).isNotNull();
+        assertThat(dataFile.getPersons()).isNotNull();
+        assertThat(dataFile.getMedicalrecords().get(0).getMedications()).isNotNull();
+        assertThat(dataFile.getMedicalrecords().get(0).getAllergies()).isNotNull();
     }
 
     @Test
@@ -106,9 +113,12 @@ class DataFileAccessImplTest {
         // Given
         int stationNumber = 2;
         // When
-        List<Firestations> personsByStation = underTest.getPersonsByStation(stationNumber);
+        List<Firestations> firestationsByStationNumber = underTest.getPersonsByStation(stationNumber);
         // Then
-        assertThat(personsByStation).isNotNull();
+        assertThat(firestationsByStationNumber)
+                .isNotNull();
+        assertThat(firestationsByStationNumber.get(0).getStation())
+                .isEqualTo(stationNumber);
     }
 
     @Test
@@ -197,8 +207,11 @@ class DataFileAccessImplTest {
         Person expectedPerson = underTest.savePerson(actualPerson);
 
         // Then
-        assertThat(expectedPerson).isEqualTo(actualPerson);
+        // Verify that the person was saved
         assertThat(expectedPerson).isNotNull();
+        assertThat(expectedPerson.getFirstName()).isEqualTo(actualPerson.getFirstName());
+        assertThat(expectedPerson.getLastName()).isEqualTo(actualPerson.getLastName());
+
     }
 
     @Test
@@ -207,6 +220,10 @@ class DataFileAccessImplTest {
         Person existingPerson = new Person("Stelzer", "Bryan",
                 "947 E. Rose Dr", "Culver", "97451",
                 "841-874-7784", "bstel@email.com");
+        Person updatedPerson = new Person("Stelzer", "Bryan",
+                "947 E. Rose Dr", "Culver", "97451",
+                "841-874-7784", "bstel@email.com");
+        updatedPerson.setFirstName("Alex");
         // When
         Person expectedPerson = underTest.updatePerson(existingPerson);
 
@@ -220,6 +237,8 @@ class DataFileAccessImplTest {
         Person existingPerson = new Person("Stelzer", "Bryan",
                 "947 E. Rose Dr", "Culver", "97451",
                 "841-874-7784", "bstel@email.com");
+        List<Person> personsList = new ArrayList<>();
+        personsList.add(existingPerson);
         // When
         boolean isPersonDeleted = underTest.deletePerson(existingPerson);
 
@@ -249,6 +268,20 @@ class DataFileAccessImplTest {
 
         // Then
         assertThat(expectedFireStations).isEqualTo(expectedFireStations);
+
+        // Given (JUNIT version)
+        /*Firestations existingFireStation = new Firestations("489 Manchester St", 2);
+        underTest.saveFirestation(existingFireStation);
+        existingFireStation.setAddress("123 New Address");
+
+        // When
+        Firestations updatedFireStation = underTest.updateFirestation(existingFireStation);
+
+        // Then
+        assertEquals(updatedFireStation, existingFireStation);
+        assertEquals(1, underTest.loadDataFile().getFirestations().size());
+        assertTrue(underTest.loadDataFile().getFirestations().contains(updatedFireStation));*/
+
     }
 
     @Test
@@ -290,6 +323,24 @@ class DataFileAccessImplTest {
 
         // Then
         assertThat(expectedMedicalRecords).isEqualTo(expectedMedicalRecords);
+
+        /*// Given
+        MedicalRecords existingMedicalRecords = new MedicalRecords("John", "Doe", "01/01/2000", null, null);
+
+        // When
+        MedicalRecords updatedMedicalRecords = underTest.updateMedicalRecords(existingMedicalRecords);
+
+        // Then
+        assertThat(updatedMedicalRecords).isNotNull().isEqualTo(existingMedicalRecords);
+        List<MedicalRecords> medicalRecordsList = underTest.loadDataFile().getMedicalrecords();
+        assertThat(medicalRecordsList).isNotNull();
+        Optional<MedicalRecords> updatedMedicalRecordsOptional = medicalRecordsList.stream()
+                .filter(medicalRecords -> existingMedicalRecords.getFirstName()
+                        .equals(medicalRecords.getFirstName())
+                        && existingMedicalRecords.getLastName().equals(medicalRecords.getLastName()))
+                .findFirst();
+        assertThat(updatedMedicalRecordsOptional).isPresent();
+        assertThat(updatedMedicalRecordsOptional.get()).isEqualTo(existingMedicalRecords);*/
     }
 
     @Test

@@ -15,6 +15,10 @@ public class InfoByStation {
         this.station = station;
     }
 
+    public InfoByStation(int i, List<FullInfoPerson> emptyList) {
+
+    }
+
     public List<InfoByAddress> getListInfo() {
         return listInfo;
     }

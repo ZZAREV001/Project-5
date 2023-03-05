@@ -284,7 +284,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         return result;
     }
 
-    private boolean isPartOfStation(int station, List<Integer> stationArr) {
+    protected boolean isPartOfStation(int station, List<Integer> stationArr) {
         for (Integer stationNumber : stationArr) {
             if (station == stationNumber)
                 return true;
@@ -292,7 +292,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         return false;
     }
 
-    private int InfoByAddressAlreadyExist(List<InfoByAddress> infoByAddressList, Person person) {
+    protected int InfoByAddressAlreadyExist(List<InfoByAddress> infoByAddressList, Person person) {
         if (infoByAddressList.size() != 0) {
             for (InfoByAddress infoByAddress : infoByAddressList) {
                 if (infoByAddress.getAddress().equals(person.getAddress())) {
@@ -317,7 +317,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         return null;
     }
 
-    private List<Integer> getStationByAddress(String address) {
+    protected List<Integer> getStationByAddress(String address) {
         List<Integer> stationNumber = new ArrayList<>();
 
         for (Firestations fireStation : dataFileAccess.getFirestations()) {
@@ -328,7 +328,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         return stationNumber;
     }
 
-    // Not used helper methods but they can be used if we extend this class:
+    // Not used helper methods, but they can be used if we extend this class:
     /*private List<String> getAddressByStation(int stationNumber) {
         List<String> fireStationAddress = new ArrayList<>();
 

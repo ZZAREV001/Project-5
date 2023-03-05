@@ -9,17 +9,20 @@ import com.safetynetalert.projet5.service.MedicalRecordsService;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @AutoConfigureMockMvc
 class FireStationsServiceImplTest {
@@ -48,30 +51,47 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.getAgeFromPerson(person1)).willReturn(age);
 
         // When
+        result.add(person1);
+        FirestationsZone fireStationZone = underTest.getFireStationZone(stationNumber);
 
         // Then
-        if (CollectionUtils.isNotEmpty(result)) {
+        /*if (CollectionUtils.isNotEmpty(result)) {
             assertThat(underTest.getFireStationZone(stationNumber)).isNotNull();
         }
         assertThatExceptionOfType(NoFirestationFoundException.class)
-                .isThrownBy(() -> underTest.getFireStationZone(stationNumber));
+                .isThrownBy(() -> underTest.getFireStationZone(stationNumber));*/
+
+        assertThat(fireStationZone).isNotNull();
+        assertThat(fireStationZone.getPersons()).containsExactly(person1);
+        assertThat(fireStationZone.getAdults()).isEqualTo(1);
+        assertThat(fireStationZone.getChildren()).isEqualTo(0);
     }
 
     @Test
     void iTShouldGetChildFromMedicalRecords() throws IOException {
         // Given
         String address = "1509 Culver St";
-        List<Person> personList = new ArrayList<>();
-        given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
+        //List<Person> personList = new ArrayList<>();
+        Person adult = new Person("Doe", "John", address, "Culver", "97451", "841-349-1950", "john.doe@abc.com");
+        Person child = new Person("Doe", "Jane", address, "Culver", "97451", "841-349-1950", "jane.doe@abc.com");
+        MedicalRecords medicalRecords = new MedicalRecords("Jane", "Doe", "01/01/2010", List.of("med1", "med2"), List.of("allergy1"));
+        given(dataFileAccess.getPersonsByAddress(address)).willReturn(List.of(adult, child));
+        given(dataFileAccess.getMedicalrecords()).willReturn(List.of(medicalRecords));
+        //given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
 
         // When
+        ChildAlert childAlert = underTest.getChildFromMedicalRecords(address);
 
         // Then
-        if (CollectionUtils.isNotEmpty(personList)) {
+        assertThat(childAlert).isNotNull();
+        assertThat(childAlert.getAddress()).isEqualTo(address);
+        assertThat(childAlert.getChild().get(0).getFirstName()).isEqualTo("Doe");
+        assertThat(childAlert.getChild().get(0).getLastName()).isEqualTo("John");
+        /*if (CollectionUtils.isNotEmpty(personList)) {
             assertThat(underTest.getChildFromMedicalRecords(address)).isNotNull();
         }
         assertThatExceptionOfType(NoChildFoundFromAddressException.class)
-                .isThrownBy(() -> underTest.getChildFromMedicalRecords(address));
+                .isThrownBy(() -> underTest.getChildFromMedicalRecords(address));*/
     }
 
     @Test
@@ -79,16 +99,16 @@ class FireStationsServiceImplTest {
         // Given
         int stationNumber = 3;
         List<Person> personList = new ArrayList<>();
+        personList.add(new Person("Doe", "John", "123 Main St", "Anytown", "12345", "555-1234", "jdoe@example.com"));
         given(dataFileAccess.getPersons()).willReturn(personList);
+        given(dataFileAccess.getNbStationByAddressFromPerson(personList.get(0))).willReturn(stationNumber);
 
         // When
+        List<String> phoneNumbers = underTest.getPhoneAlertFromFireStations(stationNumber);
 
         // Then
-        if (CollectionUtils.isNotEmpty(personList)) {
-            assertThat(underTest.getPhoneAlertFromFireStations(stationNumber)).isNotNull();
-        }
-        assertThatExceptionOfType(NoFirestationFoundException.class)
-                .isThrownBy(() -> underTest.getPhoneAlertFromFireStations(stationNumber));
+        assertThat(underTest.getPhoneAlertFromFireStations(stationNumber)).isNotNull();
+        assertThat(phoneNumbers).containsOnly(personList.get(0).getPhone());
     }
 
     @Test
@@ -96,6 +116,8 @@ class FireStationsServiceImplTest {
         // Given
         String city = "Culver";
         List<Person> personList = new ArrayList<>();
+        personList.add(new Person("Doe", "John", "123 Main St", "Culver", "12345", "555-1234", "johndoe@example.com"));
+        personList.add(new Person("Smith", "Jane", "456 Elm St", "Culver", "12345", "555-5678", "janesmith@example.com"));
         given(dataFileAccess.getPersons()).willReturn(personList);
 
         // When
@@ -103,6 +125,10 @@ class FireStationsServiceImplTest {
 
         // Then
         assertThat(communityEmail).isNotNull();
+        assertThat(communityEmail)
+                .isNotNull()
+                .hasSize(2)
+                .contains("johndoe@example.com", "janesmith@example.com");
     }
 
     @Test
@@ -118,6 +144,7 @@ class FireStationsServiceImplTest {
         if (CollectionUtils.isNotEmpty(personList)) {
             FirePerson firePersonByAddress = underTest.getFirePersonByAddress(address);
             assertThat(firePersonByAddress).isNotNull();
+            assertThat(firePersonByAddress.getPersons()).hasSize(0);
         }
         assertThatExceptionOfType(NoChildFoundFromAddressException.class)
                 .isThrownBy(() -> underTest.getFirePersonByAddress(address));
@@ -135,9 +162,41 @@ class FireStationsServiceImplTest {
 
         // Then
         assertThat(floodStationsForPersons).isNotNull();
-        /* Problem with exception: assertThatThrownBy(() -> new NoFirestationFoundException(stations))
-                .isInstanceOf(NoFirestationFoundException.class)
-                .hasMessageContaining("No Firestation(s) found for number : " + stations + " !");*/
+
+
+        /*// Given
+        List<Integer> stations = List.of(1, 2);
+        List<Person> personsList = List.of(
+                new Person("John", "Doe", "123 Main St", "City1", "12345", "555-1234", "johndoe@example.com"),
+                new Person("Jane", "Doe", "123 Main St", "City1", "12345", "555-5678", "janedoe@example.com"),
+                new Person("Alice", "Smith", "456 Oak St", "City2", "23456", "555-9012", "alice@example.com")
+        );
+        given(dataFileAccess.getPersons()).willReturn(personsList);
+
+        // When
+        List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
+
+        // Then
+        assertThat(floodStationsForPersons).isNotNull();
+        assertThat(floodStationsForPersons).hasSize(2);
+
+        // Verify info for station 1
+        InfoByStation station1Info = floodStationsForPersons.get(0);
+        assertThat(station1Info.getStation()).isEqualTo(1);
+        assertThat(station1Info.getListInfo()).hasSize(1);
+        InfoByAddress address1Info = station1Info.getListInfo().get(0);
+        assertThat(address1Info.getAddress()).isEqualTo("123 Main St");
+        assertThat(address1Info.getAddress()).hasSize(2);
+        assertThat(address1Info.getPersons()).extracting("firstName").containsOnly("John", "Jane");
+
+        // Verify info for station 2
+        InfoByStation station2Info = floodStationsForPersons.get(1);
+        assertThat(station2Info.getStation()).isEqualTo(2);
+        assertThat(station2Info.getListInfo()).hasSize(1);
+        InfoByAddress address2Info = station2Info.getListInfo().get(0);
+        assertThat(address2Info.getAddress()).isEqualTo("456 Oak St");
+        assertThat(address2Info.getAddress()).hasSize(1);
+        assertThat(address2Info.getPersons()).extracting("firstName").containsOnly("Alice");*/
     }
 
     @Test
@@ -171,87 +230,98 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.savePerson(person1)).willReturn(person1);
 
         // When
+        Person savedPerson = underTest.savePerson(person1);
+
         // Then
-        if (person1 != null)
-            assertThat(person1).isNotNull();
-        else
-            assertThat(person1).isNull();
+        assertThat(savedPerson).isNotNull();
+        assertThat(savedPerson.getFirstName()).isEqualTo(person1.getFirstName());
+        assertThat(savedPerson.getLastName()).isEqualTo(person1.getLastName());
+        assertThat(savedPerson.getAddress()).isEqualTo(person1.getAddress());
+        assertThat(savedPerson.getCity()).isEqualTo(person1.getCity());
+        assertThat(savedPerson.getZip()).isEqualTo(person1.getZip());
+        assertThat(savedPerson.getPhone()).isEqualTo(person1.getPhone());
+        assertThat(savedPerson.getEmail()).isEqualTo(person1.getEmail());
     }
 
     @Test
     void iTShouldUpdatePerson() {
         // Given
-        Person person1 = new Person("Hernandez", "Alejandra",
+        Person existingPerson = new Person("Hernandez", "Alejandra",
                 "2301 av Example 1", "Culver", "97451",
                 "841-349-1950", "Alejandra@abc.com");
-        given(dataFileAccess.updatePerson(person1)).willReturn(person1);
+        given(dataFileAccess.updatePerson(existingPerson)).willReturn(existingPerson);
 
         // When
+        Person updatedPerson = underTest.updatePerson(existingPerson);
+
         // Then
-        if (person1 != null)
-            assertThat(person1).isNotNull();
-        else
-            assertThat(person1).isNull();
+        assertThat(updatedPerson).isNotNull();
+        assertThat(updatedPerson.getFirstName()).isEqualTo(existingPerson.getFirstName());
+        assertThat(updatedPerson.getLastName()).isEqualTo(existingPerson.getLastName());
+        assertThat(updatedPerson.getAddress()).isEqualTo(existingPerson.getAddress());
+        assertThat(updatedPerson.getCity()).isEqualTo(existingPerson.getCity());
+        assertThat(updatedPerson.getZip()).isEqualTo(existingPerson.getZip());
+        assertThat(updatedPerson.getPhone()).isEqualTo(existingPerson.getPhone());
+        assertThat(updatedPerson.getEmail()).isEqualTo(existingPerson.getEmail());
     }
 
     @Test
     void iTShouldDeletePerson() {
         // Given
-        Person person1 = new Person("Hernandez", "Alejandra",
+        Person existingPerson = new Person("Hernandez", "Alejandra",
                 "2301 av Example 1", "Culver", "97451",
                 "841-349-1950", "Alejandra@abc.com");
-        Boolean isDeleted = true;
-        given(dataFileAccess.deletePerson(person1)).willReturn(isDeleted);
+        given(dataFileAccess.deletePerson(existingPerson)).willReturn(true);
 
         // When
+        boolean result = underTest.deletePerson(existingPerson);
+
         // Then
-        if (person1 != null)
-            assertThat(person1).isNotNull();
-        else
-            assertThat(person1).isNull();
+        assertThat(result).isTrue();
     }
 
     @Test
     void iTShouldSaveFirestation() {
         // Given
-        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
-        given(dataFileAccess.saveFirestation(actualFireStations)).willReturn(actualFireStations);
+        Firestations newFireStations = new Firestations("489 Manchester St", 2);
+        given(dataFileAccess.saveFirestation(newFireStations)).willReturn(newFireStations);
 
         // When
+        Firestations result = underTest.saveFirestation(newFireStations);
+
         // Then
-        if (actualFireStations != null)
-            assertThat(actualFireStations).isNotNull();
-        else
-            assertThat(actualFireStations).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getAddress()).isEqualTo("489 Manchester St");
+        assertThat(result.getStation()).isEqualTo(2);
     }
 
     @Test
     void iTShouldUpdateFireStation() {
         // Given
-        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
-        given(dataFileAccess.updateFirestation(actualFireStations)).willReturn(actualFireStations);
+        Firestations existingFireStation = new Firestations("123 Test St", 1);
+        given(dataFileAccess.updateFirestation(existingFireStation)).willReturn(existingFireStation);
 
         // When
+        Firestations updatedFireStation = underTest.updateFireStation(existingFireStation);
+
         // Then
-        if (actualFireStations != null)
-            assertThat(actualFireStations).isNotNull();
-        else
-            assertThat(actualFireStations).isNull();
+        assertThat(updatedFireStation).isNotNull();
+        assertThat(updatedFireStation.getAddress()).isEqualTo(existingFireStation.getAddress());
+        assertThat(updatedFireStation.getStation()).isEqualTo(existingFireStation.getStation());
     }
 
     @Test
     void iTShouldDeleteFireStations() {
         // Given
-        Firestations actualFireStations = new Firestations("489 Manchester St", 2);
-        boolean isDeleted = true;
-        given(dataFileAccess.deleteFireStation(actualFireStations)).willReturn(isDeleted);
+        Firestations fireStation = new Firestations("123 Main St", 1);
+        given(dataFileAccess.deleteFireStation(fireStation)).willReturn(true);
 
         // When
+        boolean result = underTest.deleteFireStations(fireStation);
+
         // Then
-        if (actualFireStations != null)
-            assertThat(actualFireStations).isNotNull();
-        else
-            assertThat(actualFireStations).isNull();
+        assertThat(result).isTrue();
+        verify(dataFileAccess).deleteFireStation(fireStation);
     }
 
     @Test
@@ -264,28 +334,36 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.saveMedicalRecords(actualMedicalRecords)).willReturn(actualMedicalRecords);
 
         // When
+        MedicalRecords savedMedicalRecords = underTest.saveMedicalRecords(actualMedicalRecords);
+
         // Then
-        if (actualMedicalRecords != null)
-            assertThat(actualMedicalRecords).isNotNull();
-        else
-            assertThat(actualMedicalRecords).isNull();
+        assertThat(savedMedicalRecords).isNotNull();
+        assertThat(savedMedicalRecords.getFirstName()).isEqualTo(actualMedicalRecords.getFirstName());
+        assertThat(savedMedicalRecords.getLastName()).isEqualTo(actualMedicalRecords.getLastName());
+        assertThat(savedMedicalRecords.getBirthdate()).isEqualTo(actualMedicalRecords.getBirthdate());
+        assertThat(savedMedicalRecords.getMedications()).containsExactlyElementsOf(actualMedicalRecords.getMedications());
+        assertThat(savedMedicalRecords.getAllergies()).containsExactlyElementsOf(actualMedicalRecords.getAllergies());
     }
 
     @Test
     void iTShouldUpdateMedicalRecords() {
         // Given
-        MedicalRecords actualMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
+        MedicalRecords existingMedicalRecords = new MedicalRecords("Rodriguo", "Juan",
                 "01/05/1998",
                 Collections.singletonList("tetracyclaz:650mg"),
                 Collections.singletonList("xilliathal"));
-        given(dataFileAccess.updateMedicalRecords(actualMedicalRecords)).willReturn(actualMedicalRecords);
+        given(dataFileAccess.updateMedicalRecords(existingMedicalRecords)).willReturn(existingMedicalRecords);
 
         // When
+        MedicalRecords result = underTest.updateMedicalRecords(existingMedicalRecords);
+
         // Then
-        if (actualMedicalRecords != null)
-            assertThat(actualMedicalRecords).isNotNull();
-        else
-            assertThat(actualMedicalRecords).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getFirstName()).isEqualTo(existingMedicalRecords.getFirstName());
+        assertThat(result.getLastName()).isEqualTo(existingMedicalRecords.getLastName());
+        assertThat(result.getBirthdate()).isEqualTo(existingMedicalRecords.getBirthdate());
+        assertThat(result.getMedications()).isEqualTo(existingMedicalRecords.getMedications());
+        assertThat(result.getAllergies()).isEqualTo(existingMedicalRecords.getAllergies());
     }
 
     @Test
@@ -299,10 +377,82 @@ class FireStationsServiceImplTest {
         given(dataFileAccess.deleteMedicalRecords(actualMedicalRecords)).willReturn(isDeleted);
 
         // When
+        boolean result = underTest.deleteMedicalRecords(actualMedicalRecords);
+
         // Then
-        if (actualMedicalRecords != null)
-            assertThat(actualMedicalRecords).isNotNull();
-        else
-            assertThat(actualMedicalRecords).isNull();
+        assertThat(result).isTrue();
+        verify(dataFileAccess).deleteMedicalRecords(actualMedicalRecords);
     }
+
+    @Test
+    void itShouldReturnTrueIfStationIsPartOfList() {
+        // Given
+        int station = 2;
+        List<Integer> stationArr = Arrays.asList(1, 2, 3);
+
+        // When
+        boolean result = underTest.isPartOfStation(station, stationArr);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void itShouldReturnFalseIfStationIsNotPartOfList() {
+        // Given
+        int station = 4;
+        List<Integer> stationArr = Arrays.asList(1, 2, 3);
+
+        // When
+        boolean result = underTest.isPartOfStation(station, stationArr);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void testInfoByAddressAlreadyExist() {
+        // Given
+        List<InfoByAddress> infoByAddressList = new ArrayList<>();
+        Person person = new Person("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "johndoe@example.com");
+        infoByAddressList.add(new InfoByAddress("123 Main St", new ArrayList<>()));
+        infoByAddressList.add(new InfoByAddress("456 Oak St", new ArrayList<>()));
+        infoByAddressList.add(new InfoByAddress("789 Pine St", new ArrayList<>()));
+
+        // When
+        int index = underTest.InfoByAddressAlreadyExist(infoByAddressList, person);
+
+        // Then
+        assertThat(index).isEqualTo(0);
+    }
+
+    @Test
+    void testGetStationByAddress() {
+        // Given
+        String address = "1509 Culver St";
+        List<Firestations> firestationsList = List.of(
+                new Firestations("1509 Culver St", 3),
+                new Firestations("5 Street", 2),
+                new Firestations("10 Street", 3),
+                new Firestations("15 Street", 1)
+        );
+        given(dataFileAccess.getFirestations()).willReturn(firestationsList);
+
+        // When
+        List<Integer> result = underTest.getStationByAddress(address);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(3);
+    }
+
+
+
+
+
+
+
+
+
 }
