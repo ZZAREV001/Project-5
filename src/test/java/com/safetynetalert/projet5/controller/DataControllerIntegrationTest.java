@@ -36,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@RunWith(SpringRunner.class)
+@WebMvcTest(DataController.class)
 class DataControllerIntegrationTest {
 
     @Autowired
@@ -180,4 +182,117 @@ class DataControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
     }
+
+    @Test
+    public void shouldCreateNewPerson() throws Exception {
+        // Given
+        Person newPerson = new Person("Doe", "John", "123 Example St",
+                "Springfield", "11111", "555-1234", "john.doe@example.com");
+
+        // When
+        MvcResult result = mockMvc.perform(post("/person")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newPerson)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Then
+        String responseBody = result.getResponse().getContentAsString();
+        Person savedPerson = objectMapper.readValue(responseBody, Person.class);
+        assertThat(savedPerson).isEqualTo(newPerson);
+    }
+
+    @Test
+    public void testUpdatePerson() throws Exception {
+        // Arrange
+        Person existingPerson = new Person();
+        existingPerson.setId(1);
+        existingPerson.setFirstName("John");
+        existingPerson.setLastName("Doe");
+        existingPerson.setAddress("123 Main St");
+        existingPerson.setCity("Springfield");
+        existingPerson.setZip("12345");
+        existingPerson.setPhone("555-1234");
+        existingPerson.setEmail("john.doe@example.com");
+
+        when(fireStationsService.updatePerson(existingPerson)).thenReturn(existingPerson);
+
+        // Act
+        ResponseEntity<Person> response = restTemplate.exchange("/person", HttpMethod.PUT,
+                new HttpEntity<>(existingPerson), Person.class);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(existingPerson);
+
+        verify(fireStationsService).updatePerson(existingPerson);
+    }
+
+    @Test
+    public void testDeletePerson() {
+        // Create test data
+        Person testPerson = new Person("John", "Doe", "123 Main St", "Anytown", "12345", "555-555-1234", "john.doe@email.com");
+
+        // Save person in the database
+        fireStationsService.savePerson(testPerson);
+
+        // Delete the person from the database
+        boolean deleteResult = fireStationsService.deletePerson(testPerson);
+
+        // Assert that the delete operation was successful
+        assertThat(deleteResult).isTrue();
+
+        // Check that the person is no longer in the database
+        assertThat(fireStationsService.findPersonById(testPerson.getId())).isNull();
+    }
+
+    @Test
+    public void createFireStationsTest() throws Exception {
+        Firestations newFireStations = new Firestations("123 Example St", 1);
+
+        given(fireStationsService.saveFirestation(any(Firestations.class))).willReturn(newFireStations);
+
+        mockMvc.perform(post("/firestation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(newFireStations)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address", is(newFireStations.getAddress())))
+                .andExpect(jsonPath("$.station", is(newFireStations.getStation())));
+    }
+
+    public static String asJsonString(final Object obj) {
+        try {
+            final ObjectMapper mapper = new ObjectMapper();
+            final String jsonContent = mapper.writeValueAsString(obj);
+            return jsonContent;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testUpdateFireStation() {
+        // Create a new Firestation object
+        Firestations newFirestation = new Firestations();
+        newFirestation.setAddress("123 Main St");
+        newFirestation.setStationNumber(1);
+
+        // Send a POST request to create the new Firestation
+        ResponseEntity<Firestations> createResponse = restTemplate.postForEntity("/firestation", newFirestation, Firestations.class);
+
+        // Assert that the POST request was successful
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Get the ID of the newly created Firestation
+        long id = createResponse.getBody().getId();
+
+        // Update the Firestation with the new information
+        newFirestation.setStationNumber(2);
+        ResponseEntity<Firestations> updateResponse = restTemplate.exchange("/firestation/{id}", HttpMethod.PUT, new HttpEntity<>(newFirestation), Firestations.class, id);
+
+        // Assert that the PUT request was successful
+        assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(updateResponse.getBody().getStationNumber()).isEqualTo(2);
+    }
+
 }
