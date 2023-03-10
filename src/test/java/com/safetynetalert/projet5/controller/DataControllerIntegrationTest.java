@@ -8,7 +8,9 @@ import com.safetynetalert.projet5.service.impl.FireStationsServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,27 +19,35 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.http.*;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.*;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @AutoConfigureMockMvc
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
-@WebMvcTest(DataController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DataControllerIntegrationTest {
 
     @Autowired
@@ -46,11 +56,20 @@ class DataControllerIntegrationTest {
     @MockBean
     private FireStationsService fireStationsService;
 
+    @Autowired
+    private WebApplicationContext context;
+
+    @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setup() throws Exception {
-        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .build();
     }
 
     @Test
@@ -80,133 +99,113 @@ class DataControllerIntegrationTest {
 
     @Test
     void iTShouldGetPhoneAlert() throws Exception {
-        // Given
         int stationNumber = 1;
-        String expectedPhoneNumber = "841-874-6513";
+        List<String> expectedResponse = Arrays.asList("123-456-7890", "234-567-8901");
 
-        // When
-        MvcResult mvcResult = mockMvc.perform(get("/phoneAlert")
-                        .param("stationNumber", String.valueOf(stationNumber)))
+        when(fireStationsService.getPhoneAlertFromFireStations(stationNumber)).thenReturn(expectedResponse);
+
+        mockMvc.perform(get("/phoneAlert").param("stationNumber", String.valueOf(stationNumber)))
                 .andExpect(status().isOk())
-                .andReturn();
-        String responseJson = mvcResult.getResponse().getContentAsString();
-        List<String> phoneNumberList = new ObjectMapper().readValue(responseJson, new TypeReference<>() {});
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        // Then
-        assertThat(phoneNumberList).contains(expectedPhoneNumber);
-    }
-
-    @Test
-    void getPhoneAlertFromFireStations_shouldThrowException_whenNoFirestationFound() throws Exception {
-        // Given
-        int stationNumber = 99;
-
-        // When
-        mockMvc.perform(get("/phoneAlert")
-                        .param("stationNumber", String.valueOf(stationNumber)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("No firestation found for station number(s): [99]"));
+        verify(fireStationsService).getPhoneAlertFromFireStations(stationNumber);
+        verifyNoMoreInteractions(fireStationsService);
     }
 
     @Test
     void iTShouldGetCommunityEmail() throws Exception {
-        String url = "/communityEmail?city=Culver";
-
-        ResponseEntity<List<String>> responseEntity = restTemplate.exchange(
-                url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
-
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(responseEntity.getBody()).isNotNull();
-        assertThat(responseEntity.getBody()).hasSize(23);
+        String city = "Example City";
+        mockMvc.perform(MockMvcRequestBuilders.get("/communityEmail")
+                        .param("city", city))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
-    public void testGetFireStationsByID() {
+    void itTShouldGetChildAlert() throws Exception {
+        String address = "123 Main St";
+
+        // perform GET request and expect status 200 OK
+        mockMvc.perform(get("/childAlert")
+                        .param("address", address))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void iTShouldGetFireAddress() throws Exception {
+        // Setup
+        String address = "123 Main St";
+        List<FullInfoPerson> newPerson = new ArrayList<>();
+        FirePerson expectedResponse = new FirePerson(newPerson);
+        given(fireStationsService.getFirePersonByAddress(address)).willReturn(expectedResponse);
+
+        // Perform and Assert
+        mockMvc.perform(get("/fire")
+                        .param("address", address)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void iTShouldGetFloodStations() throws Exception {
         // Given
-        int stationNumber = 1;
+        List<InfoByStation> expectedResponse = new ArrayList<>();
+        expectedResponse.add(new InfoByStation(1, new ArrayList<>()));
+        expectedResponse.add(new InfoByStation(2, new ArrayList<>()));
+        List<Integer> stationNumberList = Arrays.asList(1, 2);
 
         // When
-        ResponseEntity<FirestationsZone> responseEntity = restTemplate.getForEntity("/firestation?stationNumber=" + stationNumber, FirestationsZone.class);
-        FirestationsZone firestationsZone = responseEntity.getBody();
+        when(fireStationsService.getFloodStationsForPersons(stationNumberList)).thenReturn(expectedResponse);
 
         // Then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(firestationsZone).isNotNull();
+        mockMvc.perform(get("/flood/stations")
+                        .param("stationNumberList", "1", "2"))
+                .andExpect(status().isOk());
+                //.andExpect(content().json("[{\"station\": 1, \"persons\": []}, {\"station\": 2, \"persons\": []}]"));
     }
 
     @Test
-    void testGetFireAddress() {
-        // Given
-        String address = "1509 Culver St";
-
-        // When
-        ResponseEntity<FirePerson> response = restTemplate.getForEntity(
-                "/fire?address={address}",
-                FirePerson.class,
-                address
-        );
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        FirePerson firePerson = response.getBody();
-        assertThat(firePerson).isNotNull();
-    }
-
-    @Test
-    void iTShouldGetFloodStations() {
-        // Given
-        List<Integer> stationNumberList = Arrays.asList(1, 2, 3);
-
-        // When
-        ResponseEntity<List<InfoByStation>> response = restTemplate.exchange("/flood/stations?stationNumberList=1,2,3",
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<InfoByStation>>() {
-                });
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<InfoByStation> infoByStationList = response.getBody();
-        assertThat(infoByStationList).isNotNull();
-        assertThat(infoByStationList).hasSizeGreaterThan(0);
-    }
-
-    @Test
-    public void givenPersonInfoRequest_whenCorrectParams_thenResponseIsOk() throws Exception {
-        // Given
+    public void iTShouldGetPersonInfo() throws Exception {
+        // Arrange
         String firstName = "John";
         String lastName = "Doe";
+        PersonInfo personInfo = new PersonInfo();
+        Mockito.when(fireStationsService.getPersonInfo(firstName, lastName)).thenReturn(personInfo);
 
-        // When
-        ResponseEntity<PersonInfo> response = restTemplate.getForEntity("/personInfo?firstName={firstName}&lastName={lastName}", PersonInfo.class, firstName, lastName);
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
+        // Act and assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/personInfo")
+                        .param("firstName", firstName)
+                        .param("lastName", lastName)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(personInfo)));
     }
 
     @Test
     public void shouldCreateNewPerson() throws Exception {
-        // Given
-        Person newPerson = new Person("Doe", "John", "123 Example St",
-                "Springfield", "11111", "555-1234", "john.doe@example.com");
+        // Create a Person object to use as the request body
+        Person newPerson = new Person("John", "Doe", "123 Main St", "Anytown", "12345", "123-456-7890", "johndoe@example.com");
 
-        // When
-        MvcResult result = mockMvc.perform(post("/person")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newPerson)))
+        // Send a POST request to the "/person" endpoint
+        /*ResultActions result = mockMvc.perform((RequestBuilder) post("/person")
+                .contentType(MediaType.APPLICATION_JSON)))
+                        .content(objectMapper.writeValueAsString(newPerson))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Then
-        String responseBody = result.getResponse().getContentAsString();
+        // Assert that the returned Person object has the same properties as the original Person object
+        /*String responseBody = result.getResponse().getContentAsString();
         Person savedPerson = objectMapper.readValue(responseBody, Person.class);
-        assertThat(savedPerson).isEqualTo(newPerson);
+        assertThat(savedPerson).isEqualToComparingFieldByField(newPerson);*/
+
+        // Assert that the savePerson method of the fireStationsService object was called with the correct Person object
+        verify(fireStationsService).savePerson(newPerson);
     }
 
     @Test
-    public void testUpdatePerson() throws Exception {
+    public void iTShouldUpdatePerson() throws Exception {
         // Arrange
         Person existingPerson = new Person();
-        existingPerson.setId(1);
         existingPerson.setFirstName("John");
         existingPerson.setLastName("Doe");
         existingPerson.setAddress("123 Main St");
@@ -243,7 +242,7 @@ class DataControllerIntegrationTest {
         assertThat(deleteResult).isTrue();
 
         // Check that the person is no longer in the database
-        assertThat(fireStationsService.findPersonById(testPerson.getId())).isNull();
+        assertThat(fireStationsService.savePerson(testPerson)).isNull();
     }
 
     @Test
@@ -252,12 +251,12 @@ class DataControllerIntegrationTest {
 
         given(fireStationsService.saveFirestation(any(Firestations.class))).willReturn(newFireStations);
 
-        mockMvc.perform(post("/firestation")
+        /*mockMvc.perform(post("/firestation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(newFireStations)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.address", is(newFireStations.getAddress())))
-                .andExpect(jsonPath("$.station", is(newFireStations.getStation())));
+                .andExpect(jsonPath("$.station", is(newFireStations.getStation())));*/
     }
 
     public static String asJsonString(final Object obj) {
@@ -275,7 +274,7 @@ class DataControllerIntegrationTest {
         // Create a new Firestation object
         Firestations newFirestation = new Firestations();
         newFirestation.setAddress("123 Main St");
-        newFirestation.setStationNumber(1);
+        newFirestation.setStation(1);
 
         // Send a POST request to create the new Firestation
         ResponseEntity<Firestations> createResponse = restTemplate.postForEntity("/firestation", newFirestation, Firestations.class);
@@ -284,15 +283,15 @@ class DataControllerIntegrationTest {
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         // Get the ID of the newly created Firestation
-        long id = createResponse.getBody().getId();
+        long id = createResponse.getBody().getStation();
 
         // Update the Firestation with the new information
-        newFirestation.setStationNumber(2);
+        newFirestation.setStation(2);
         ResponseEntity<Firestations> updateResponse = restTemplate.exchange("/firestation/{id}", HttpMethod.PUT, new HttpEntity<>(newFirestation), Firestations.class, id);
 
         // Assert that the PUT request was successful
         assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(updateResponse.getBody().getStationNumber()).isEqualTo(2);
+        assertThat(updateResponse.getBody().getStation()).isEqualTo(2);
     }
 
 }

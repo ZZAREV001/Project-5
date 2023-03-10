@@ -13,4 +13,5 @@ import java.util.List;
 public class FirePerson {
 
     private List<FullInfoPerson> persons;
+
 }
