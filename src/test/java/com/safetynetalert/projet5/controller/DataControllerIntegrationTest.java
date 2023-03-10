@@ -1,5 +1,6 @@
 package com.safetynetalert.projet5.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynetalert.projet5.model.*;
@@ -35,6 +36,7 @@ import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -182,24 +184,19 @@ class DataControllerIntegrationTest {
     }
 
     @Test
-    public void shouldCreateNewPerson() throws Exception {
-        // Create a Person object to use as the request body
-        Person newPerson = new Person("John", "Doe", "123 Main St", "Anytown", "12345", "123-456-7890", "johndoe@example.com");
+    public void iTShouldCreateNewPerson() throws Exception {
+        Person newPerson = new Person();
+        newPerson.setFirstName("John");
+        newPerson.setLastName("Doe");
 
-        // Send a POST request to the "/person" endpoint
-        /*ResultActions result = mockMvc.perform((RequestBuilder) post("/person")
-                .contentType(MediaType.APPLICATION_JSON)))
-                        .content(objectMapper.writeValueAsString(newPerson))
-                .andExpect(status().isOk())
-                .andReturn();
+        Mockito.when(fireStationsService.savePerson(Mockito.any())).thenReturn(newPerson);
 
-        // Assert that the returned Person object has the same properties as the original Person object
-        /*String responseBody = result.getResponse().getContentAsString();
-        Person savedPerson = objectMapper.readValue(responseBody, Person.class);
-        assertThat(savedPerson).isEqualToComparingFieldByField(newPerson);*/
-
-        // Assert that the savePerson method of the fireStationsService object was called with the correct Person object
-        verify(fireStationsService).savePerson(newPerson);
+        mockMvc.perform(MockMvcRequestBuilders.post("/person")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"firstName\": \"John\", \"lastName\": \"Doe\"}"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Doe"));
     }
 
     @Test
@@ -228,35 +225,40 @@ class DataControllerIntegrationTest {
     }
 
     @Test
-    public void testDeletePerson() {
-        // Create test data
-        Person testPerson = new Person("John", "Doe", "123 Main St", "Anytown", "12345", "555-555-1234", "john.doe@email.com");
+    public void iTShouldDeletePerson() throws Exception {
+        Person personToDelete = new Person();
+        personToDelete.setFirstName("John");
+        String personJson = new ObjectMapper().writeValueAsString(personToDelete);
 
-        // Save person in the database
-        fireStationsService.savePerson(testPerson);
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.delete("/person")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(personJson))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
 
-        // Delete the person from the database
-        boolean deleteResult = fireStationsService.deletePerson(testPerson);
+        String responseJson = mvcResult.getResponse().getContentAsString();
+        Boolean result = new ObjectMapper().readValue(responseJson, Boolean.class);
 
-        // Assert that the delete operation was successful
-        assertThat(deleteResult).isTrue();
-
-        // Check that the person is no longer in the database
-        assertThat(fireStationsService.savePerson(testPerson)).isNull();
+        assertTrue(result);
     }
 
     @Test
-    public void createFireStationsTest() throws Exception {
-        Firestations newFireStations = new Firestations("123 Example St", 1);
+    public void iTShouldCreateFireStationsTest() throws Exception {
+        Firestations fireStations = new Firestations();
+        fireStations.setStation(1);
+        fireStations.setAddress("123 Main St");
 
-        given(fireStationsService.saveFirestation(any(Firestations.class))).willReturn(newFireStations);
+        when(fireStationsService.saveFirestation(any(Firestations.class))).thenReturn(fireStations);
 
-        /*mockMvc.perform(post("/firestation")
+        mockMvc.perform(post("/firestation")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(newFireStations)))
+                        .content("{ \"station\": 1, \"address\": \"123 Main St\" }")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.address", is(newFireStations.getAddress())))
-                .andExpect(jsonPath("$.station", is(newFireStations.getStation())));*/
+                .andExpect(jsonPath("$.station").value(1))
+                .andExpect(jsonPath("$.address").value("123 Main St"));
+
+        verify(fireStationsService, times(1)).saveFirestation(any(Firestations.class));
     }
 
     public static String asJsonString(final Object obj) {
