@@ -5,6 +5,7 @@ import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
+import com.safetynetalert.projet5.service.FireStationsService;
 import com.safetynetalert.projet5.service.MedicalRecordsService;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @AutoConfigureMockMvc
 class FireStationsServiceImplTest {
@@ -162,41 +163,39 @@ class FireStationsServiceImplTest {
 
         // Then
         assertThat(floodStationsForPersons).isNotNull();
+        assertThat(floodStationsForPersons).hasSize(0);
 
-
-        /*// Given
-        List<Integer> stations = List.of(1, 2);
-        List<Person> personsList = List.of(
-                new Person("John", "Doe", "123 Main St", "City1", "12345", "555-1234", "johndoe@example.com"),
-                new Person("Jane", "Doe", "123 Main St", "City1", "12345", "555-5678", "janedoe@example.com"),
-                new Person("Alice", "Smith", "456 Oak St", "City2", "23456", "555-9012", "alice@example.com")
+        /*List<Person> testPersons = Arrays.asList(
+                new Person("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com"),
+                new Person("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com")
         );
-        given(dataFileAccess.getPersons()).willReturn(personsList);
 
-        // When
-        List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
+        when(dataFileAccess.getPersons()).thenReturn(testPersons);
 
-        // Then
-        assertThat(floodStationsForPersons).isNotNull();
-        assertThat(floodStationsForPersons).hasSize(2);
+        List<Integer> stations = Arrays.asList(1, 2);
+        List<InfoByStation> expected = Arrays.asList(
+                new InfoByStation(Arrays.asList(
+                        new InfoByAddress("123 Main St", List.of(
+                                new FullInfoPerson("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com", null, 0, null, null, 0)
+                        )),
+                        new InfoByAddress("456 Oak St", List.of(
+                                new FullInfoPerson("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com", null, 0, null, null, 0)
+                        ))
+                ), 1),
+                new InfoByStation(Arrays.asList(
+                        new InfoByAddress("123 Main St", List.of(
+                                new FullInfoPerson("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com", null, 0, null, null, 0)
+                        )),
+                        new InfoByAddress("456 Oak St", List.of(
+                                new FullInfoPerson("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com", null, 0, null, null, 0)
+                        ))
+                ), 2)
+        );
 
-        // Verify info for station 1
-        InfoByStation station1Info = floodStationsForPersons.get(0);
-        assertThat(station1Info.getStation()).isEqualTo(1);
-        assertThat(station1Info.getListInfo()).hasSize(1);
-        InfoByAddress address1Info = station1Info.getListInfo().get(0);
-        assertThat(address1Info.getAddress()).isEqualTo("123 Main St");
-        assertThat(address1Info.getAddress()).hasSize(2);
-        assertThat(address1Info.getPersons()).extracting("firstName").containsOnly("John", "Jane");
+        List<InfoByStation> actual = underTest.getFloodStationsForPersons(stations);
 
-        // Verify info for station 2
-        InfoByStation station2Info = floodStationsForPersons.get(1);
-        assertThat(station2Info.getStation()).isEqualTo(2);
-        assertThat(station2Info.getListInfo()).hasSize(1);
-        InfoByAddress address2Info = station2Info.getListInfo().get(0);
-        assertThat(address2Info.getAddress()).isEqualTo("456 Oak St");
-        assertThat(address2Info.getAddress()).hasSize(1);
-        assertThat(address2Info.getPersons()).extracting("firstName").containsOnly("Alice");*/
+        assertThat(actual).isEqualTo(expected);*/
+
     }
 
     @Test

@@ -1,25 +1,18 @@
 package com.safetynetalert.projet5.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.service.FireStationsService;
-import com.safetynetalert.projet5.service.impl.FireStationsServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.*;
@@ -32,16 +25,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -57,6 +44,9 @@ class DataControllerIntegrationTest {
 
     @MockBean
     private FireStationsService fireStationsService;
+
+    @MockBean
+    private MedicalRecords medicalRecords;
 
     @Autowired
     private WebApplicationContext context;
@@ -226,74 +216,104 @@ class DataControllerIntegrationTest {
 
     @Test
     public void iTShouldDeletePerson() throws Exception {
-        Person personToDelete = new Person();
-        personToDelete.setFirstName("John");
-        String personJson = new ObjectMapper().writeValueAsString(personToDelete);
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.delete("/person")
+        mockMvc.perform(delete("/person")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(personJson))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-
-        String responseJson = mvcResult.getResponse().getContentAsString();
-        Boolean result = new ObjectMapper().readValue(responseJson, Boolean.class);
-
-        assertTrue(result);
+                        .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"address\":\"123 Main St\",\"city\":\"Anytown\",\"zip\":\"12345\",\"phone\":\"111-111-1111\",\"email\":\"johndoe@example.com\"}"))
+                .andExpect(status().isOk());
+        verify(fireStationsService).deletePerson(any(Person.class));
     }
 
     @Test
     public void iTShouldCreateFireStationsTest() throws Exception {
-        Firestations fireStations = new Firestations();
-        fireStations.setStation(1);
-        fireStations.setAddress("123 Main St");
+        Firestations newFirestation = new Firestations("123 Main St", 1);
+        String requestBody = new ObjectMapper().writeValueAsString(newFirestation);
 
-        when(fireStationsService.saveFirestation(any(Firestations.class))).thenReturn(fireStations);
+        when(fireStationsService.saveFirestation(newFirestation)).thenReturn(newFirestation);
 
-        mockMvc.perform(post("/firestation")
+        mockMvc.perform(MockMvcRequestBuilders.post("/firestation")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{ \"station\": 1, \"address\": \"123 Main St\" }")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.station").value(1))
-                .andExpect(jsonPath("$.address").value("123 Main St"));
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
 
-        verify(fireStationsService, times(1)).saveFirestation(any(Firestations.class));
-    }
-
-    public static String asJsonString(final Object obj) {
-        try {
-            final ObjectMapper mapper = new ObjectMapper();
-            final String jsonContent = mapper.writeValueAsString(obj);
-            return jsonContent;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        verify(fireStationsService, times(1)).saveFirestation(newFirestation);
     }
 
     @Test
-    public void testUpdateFireStation() {
-        // Create a new Firestation object
-        Firestations newFirestation = new Firestations();
-        newFirestation.setAddress("123 Main St");
-        newFirestation.setStation(1);
+    public void iTShouldUpdateFireStation() throws Exception {
+        // Create a new Firestations object with the updated data
+        Firestations existingFireStation = new Firestations("123 Main St", 2);
 
-        // Send a POST request to create the new Firestation
-        ResponseEntity<Firestations> createResponse = restTemplate.postForEntity("/firestation", newFirestation, Firestations.class);
+        // Convert the Firestations object to JSON
+        String requestBody = new ObjectMapper().writeValueAsString(existingFireStation);
 
-        // Assert that the POST request was successful
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        // Set up the MockMvc environment
+        mockMvc.perform(MockMvcRequestBuilders.put("/firestation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-        // Get the ID of the newly created Firestation
-        long id = createResponse.getBody().getStation();
-
-        // Update the Firestation with the new information
-        newFirestation.setStation(2);
-        ResponseEntity<Firestations> updateResponse = restTemplate.exchange("/firestation/{id}", HttpMethod.PUT, new HttpEntity<>(newFirestation), Firestations.class, id);
-
-        // Assert that the PUT request was successful
-        assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(updateResponse.getBody().getStation()).isEqualTo(2);
+        // Verify that the update method was called once with the correct object
+        verify(fireStationsService, times(1)).updateFireStation(existingFireStation);
     }
+
+    @Test
+    public void iTShouldDeleteFireStation() throws Exception {
+        Firestations existingFirestation = new Firestations("123 Main St", 1);
+        String requestBody = new ObjectMapper().writeValueAsString(existingFirestation);
+
+        doReturn(true).when(fireStationsService).deleteFireStations(existingFirestation);
+
+        mockMvc.perform(delete("/firestation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(fireStationsService, times(1)).deleteFireStations(existingFirestation);
+    }
+
+    @Test
+    public void itShouldCreateMedicalRecords() throws Exception {
+        MedicalRecords medicalRecords = new MedicalRecords("John", "Doe", "01/01/1970", new ArrayList<>(), new ArrayList<>());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(medicalRecords);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/medicalrecords")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(fireStationsService, times(1)).saveMedicalRecords(medicalRecords);
+    }
+
+    @Test
+    public void itShouldUpdateMedicalRecords() throws Exception {
+        MedicalRecords medicalRecords = new MedicalRecords("John", "Doe", "01/01/1970", new ArrayList<>(), new ArrayList<>());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(medicalRecords);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/medicalrecords")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(fireStationsService, times(1)).updateMedicalRecords(medicalRecords);
+    }
+
+    @Test
+    public void itShouldDeleteMedicalRecords() throws Exception {
+        MedicalRecords medicalRecords = new MedicalRecords("John", "Doe", "01/01/1970", new ArrayList<>(), new ArrayList<>());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(medicalRecords);
+
+        mockMvc.perform(delete("/medicalrecords")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(fireStationsService, times(1)).deleteMedicalRecords(medicalRecords);
+    }
+
+
 
 }

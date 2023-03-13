@@ -211,7 +211,6 @@ class DataFileAccessImplTest {
         assertThat(expectedPerson).isNotNull();
         assertThat(expectedPerson.getFirstName()).isEqualTo(actualPerson.getFirstName());
         assertThat(expectedPerson.getLastName()).isEqualTo(actualPerson.getLastName());
-
     }
 
     @Test
