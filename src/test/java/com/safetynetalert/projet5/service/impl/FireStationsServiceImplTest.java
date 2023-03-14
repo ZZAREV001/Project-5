@@ -1,16 +1,12 @@
 package com.safetynetalert.projet5.service.impl;
 
-import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
-import com.safetynetalert.projet5.controller.NoFirestationFoundException;
-import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
+import com.safetynetalert.projet5.exceptions.NoChildFoundFromAddressException;
+import com.safetynetalert.projet5.exceptions.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
-import com.safetynetalert.projet5.service.FireStationsService;
-import com.safetynetalert.projet5.service.MedicalRecordsService;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

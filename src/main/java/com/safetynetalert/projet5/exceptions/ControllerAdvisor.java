@@ -1,12 +1,8 @@
 package com.safetynetalert.projet5.exceptions;
 
-import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
-import com.safetynetalert.projet5.controller.NoFirestationFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,7 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ControllerAdvisor extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LogManager.getLogger(ControllerAdvisor.class);
-    /*
+
     @ExceptionHandler(NoFirestationFoundException.class)
     @ResponseBody
     public ResponseEntity<?> handleNoFirestationFoundException(NoFirestationFoundException e) {
@@ -69,5 +65,5 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
         HttpStatus status = HttpStatus.resolve(errorResponse.getStatus());
         logger.debug("Responding with a status of {}", status);
         return new ResponseEntity<>(errorResponse, new HttpHeaders(), status);
-    }*/
+    }
 }

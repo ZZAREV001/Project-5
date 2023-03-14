@@ -1,4 +1,4 @@
-package com.safetynetalert.projet5.controller;
+package com.safetynetalert.projet5.exceptions;
 
 
 public class NoChildFoundFromAddressException extends RuntimeException {

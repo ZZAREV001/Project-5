@@ -1,8 +1,8 @@
 package com.safetynetalert.projet5.service.impl;
 
-import com.safetynetalert.projet5.controller.NoChildFoundFromAddressException;
-import com.safetynetalert.projet5.controller.NoFirestationFoundException;
-import com.safetynetalert.projet5.controller.NoPersonFoundFromNamesException;
+import com.safetynetalert.projet5.exceptions.NoChildFoundFromAddressException;
+import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
+import com.safetynetalert.projet5.exceptions.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
@@ -13,10 +13,8 @@ import org.springframework.stereotype.Service;
 import org.apache.commons.collections.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
