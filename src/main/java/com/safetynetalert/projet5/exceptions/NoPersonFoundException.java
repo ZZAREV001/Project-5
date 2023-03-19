@@ -1,13 +1,16 @@
 package com.safetynetalert.projet5.exceptions;
 
+import com.safetynetalert.projet5.model.Person;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.List;
+
 public class NoPersonFoundException extends Throwable {
 
-    public NoPersonFoundException(String message) {
-        super(message);
+    public NoPersonFoundException(List<Person> persons) {
+        super("Person(s) not found: " + persons);
     }
 
     @ExceptionHandler(NoPersonFoundException.class)

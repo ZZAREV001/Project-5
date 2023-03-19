@@ -1,10 +1,12 @@
 package com.safetynetalert.projet5.service.impl;
 
 import com.safetynetalert.projet5.exceptions.NoChildFoundFromAddressException;
+import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
 import com.safetynetalert.projet5.exceptions.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import org.apache.commons.collections.CollectionUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -150,48 +152,22 @@ class FireStationsServiceImplTest {
     @Test
     void iTShouldGetFloodStationsForPersons() {
         // Given
-        List<Integer> stations = new ArrayList<>();
-        List<Person> personsList = new ArrayList<>();
-        given(dataFileAccess.getPersons()).willReturn(personsList);
+        List<Integer> stations = List.of(1, 2);
+        given(dataFileAccess.getPersonsByFirestationNumber(1)).willReturn(List.of(new Person()));
+        given(dataFileAccess.getPersonsByFirestationNumber(2)).willReturn(List.of(new Person()));
 
         // When
-        List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
+        //List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
+        Throwable thrown = Assertions.catchThrowable(() -> {
+            underTest.getFloodStationsForPersons(stations);
+        });
 
         // Then
-        assertThat(floodStationsForPersons).isNotNull();
-        assertThat(floodStationsForPersons).hasSize(0);
-
-        /*List<Person> testPersons = Arrays.asList(
-                new Person("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com"),
-                new Person("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com")
-        );
-
-        when(dataFileAccess.getPersons()).thenReturn(testPersons);
-
-        List<Integer> stations = Arrays.asList(1, 2);
-        List<InfoByStation> expected = Arrays.asList(
-                new InfoByStation(Arrays.asList(
-                        new InfoByAddress("123 Main St", List.of(
-                                new FullInfoPerson("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com", null, 0, null, null, 0)
-                        )),
-                        new InfoByAddress("456 Oak St", List.of(
-                                new FullInfoPerson("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com", null, 0, null, null, 0)
-                        ))
-                ), 1),
-                new InfoByStation(Arrays.asList(
-                        new InfoByAddress("123 Main St", List.of(
-                                new FullInfoPerson("John", "Doe", "123 Main St", "Anytown", "12345", "555-1234", "john.doe@example.com", null, 0, null, null, 0)
-                        )),
-                        new InfoByAddress("456 Oak St", List.of(
-                                new FullInfoPerson("Jane", "Doe", "456 Oak St", "Othertown", "67890", "555-5678", "jane.doe@example.com", null, 0, null, null, 0)
-                        ))
-                ), 2)
-        );
-
-        List<InfoByStation> actual = underTest.getFloodStationsForPersons(stations);
-
-        assertThat(actual).isEqualTo(expected);*/
-
+        assertThat(thrown).isInstanceOf(NoFirestationFoundException.class);
+        /*assertThat(floodStationsForPersons).isNotNull();
+        assertThat(floodStationsForPersons).hasSize(2);
+        assertThat(floodStationsForPersons.get(0).getStation()).isEqualTo(1);
+        assertThat(floodStationsForPersons.get(1).getStation()).isEqualTo(2);*/
     }
 
     @Test

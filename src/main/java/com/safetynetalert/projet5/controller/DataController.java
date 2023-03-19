@@ -1,11 +1,13 @@
 package com.safetynetalert.projet5.controller;
 
+import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -21,7 +23,12 @@ public class DataController {
 
     @GetMapping(value = "/firestation", produces = "application/json")
     public FirestationsZone getFireStationsByID(@RequestParam int stationNumber) {
-        return fireStationsService.getFireStationZone(stationNumber);
+        FirestationsZone firestationsZone = fireStationsService.getFireStationZone(stationNumber);
+
+        if (firestationsZone == null) {
+            throw new NoFirestationFoundException(Collections.singletonList(stationNumber));
+        }
+        return firestationsZone;
     }
 
     @GetMapping(value = "/phoneAlert", produces = "application/json")
