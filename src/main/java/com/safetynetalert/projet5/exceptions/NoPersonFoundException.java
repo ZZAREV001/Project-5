@@ -17,4 +17,5 @@ public class NoPersonFoundException extends Throwable {
     public ResponseEntity<String> handleNoPersonFoundException(NoPersonFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
+
 }

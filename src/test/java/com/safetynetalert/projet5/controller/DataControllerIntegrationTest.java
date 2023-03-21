@@ -2,6 +2,7 @@ package com.safetynetalert.projet5.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.service.FireStationsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,7 @@ class DataControllerIntegrationTest {
     }
 
     @Test
-    void iTShouldGetFireStationsByID() throws Exception {
+    void iTShouldGetFireStationsByID() throws Exception, NoFirestationFoundException {
         // Given
         int stationNumber = 1;
         ObjectMapper objectMapper = new ObjectMapper();
@@ -90,7 +91,7 @@ class DataControllerIntegrationTest {
     }
 
     @Test
-    void iTShouldGetPhoneAlert() throws Exception {
+    void iTShouldGetPhoneAlert() throws Exception, NoFirestationFoundException {
         int stationNumber = 1;
         List<String> expectedResponse = Arrays.asList("123-456-7890", "234-567-8901");
 
@@ -139,7 +140,7 @@ class DataControllerIntegrationTest {
     }
 
     @Test
-    void iTShouldGetFloodStations() throws Exception {
+    void iTShouldGetFloodStations() throws Exception, NoFirestationFoundException {
         // Given
         List<InfoByStation> expectedResponse = new ArrayList<>();
         expectedResponse.add(new InfoByStation(1, new ArrayList<>()));

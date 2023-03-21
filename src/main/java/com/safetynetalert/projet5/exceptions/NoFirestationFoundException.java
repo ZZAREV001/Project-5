@@ -2,7 +2,7 @@ package com.safetynetalert.projet5.exceptions;
 
 import java.util.List;
 
-public class NoFirestationFoundException extends RuntimeException {
+public class NoFirestationFoundException extends Throwable {
 
     private final List<Integer> firestationNb;
 

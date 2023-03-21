@@ -6,13 +6,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 public class NoPersonFoundFromFirstNameAndNameException extends Throwable {
 
-        public NoPersonFoundFromFirstNameAndNameException() {
-            super("No person(s) found from firstname and name: ");
-        }
-
-        @ExceptionHandler(com.safetynetalert.projet5.exceptions.NoPersonFoundFromFirstNameAndNameException.class)
-        public ResponseEntity<String> handleNoPersonFoundException(com.safetynetalert.projet5.exceptions.NoPersonFoundFromFirstNameAndNameException exception) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+        public NoPersonFoundFromFirstNameAndNameException(String firstName, String lastName) {
+            super("No person(s) found from firstname:" + firstName +  "and name:" + lastName);
         }
 }
 

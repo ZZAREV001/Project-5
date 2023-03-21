@@ -33,7 +33,7 @@ public class FireStationsServiceImpl implements FireStationsService {
 
 
     @Override
-    public FirestationsZone getFireStationZone(int stationNumber) {
+    public FirestationsZone getFireStationZone(int stationNumber) throws NoFirestationFoundException {
         List<Person> personList = dataFileAccess.getPersonsByFirestationNumber(stationNumber);
         long nbChildren = personList.stream()
                 .filter(p -> dataFileAccess.getAgeFromPerson(p) <= 18)
@@ -76,7 +76,7 @@ public class FireStationsServiceImpl implements FireStationsService {
     }
 
     @Override
-    public List<String> getPhoneAlertFromFireStations(int stationNumber) {
+    public List<String> getPhoneAlertFromFireStations(int stationNumber) throws NoFirestationFoundException {
         List<String> phoneNumberList = new ArrayList<>();
 
         for (Person person : dataFileAccess.getPersons()) {
@@ -126,7 +126,7 @@ public class FireStationsServiceImpl implements FireStationsService {
     }
 
     @Override
-    public List<InfoByStation> getFloodStationsForPersons(List<Integer> stations) {
+    public List<InfoByStation> getFloodStationsForPersons(List<Integer> stations) throws NoFirestationFoundException {
         List<InfoByStation> infoByStationList = new ArrayList<>();
         int stationCounterRequest = 0;
 

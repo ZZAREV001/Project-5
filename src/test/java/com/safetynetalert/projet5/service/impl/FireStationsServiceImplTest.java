@@ -38,7 +38,7 @@ class FireStationsServiceImplTest {
     }
 
     @Test
-    void iTShouldGetFireStationZone() {
+    void iTShouldGetFireStationZone() throws NoFirestationFoundException {
         // Given
         int stationNumber = 2;
         int age = 25;
@@ -94,7 +94,7 @@ class FireStationsServiceImplTest {
     }
 
     @Test
-    void iTShouldGetPhoneAlertFromFireStations() {
+    void iTShouldGetPhoneAlertFromFireStations() throws NoFirestationFoundException {
         // Given
         int stationNumber = 3;
         List<Person> personList = new ArrayList<>();

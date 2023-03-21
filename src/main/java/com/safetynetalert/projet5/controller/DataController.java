@@ -1,8 +1,7 @@
 package com.safetynetalert.projet5.controller;
 
-import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
+import com.safetynetalert.projet5.exceptions.*;
 import com.safetynetalert.projet5.model.*;
-import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.FireStationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +21,7 @@ public class DataController {
 
 
     @GetMapping(value = "/firestation", produces = "application/json")
-    public FirestationsZone getFireStationsByID(@RequestParam int stationNumber) {
+    public FirestationsZone getFireStationsByID(@RequestParam int stationNumber) throws NoFirestationFoundException {
         FirestationsZone firestationsZone = fireStationsService.getFireStationZone(stationNumber);
 
         if (firestationsZone == null) {
@@ -32,33 +31,63 @@ public class DataController {
     }
 
     @GetMapping(value = "/phoneAlert", produces = "application/json")
-    public List<String> getPhoneAlert(@RequestParam int stationNumber) {
-        return fireStationsService.getPhoneAlertFromFireStations(stationNumber);
+    public List<String> getPhoneAlert(@RequestParam int stationNumber) throws NoPhoneFoundFromFirestationException, NoFirestationFoundException {
+        List<String> phoneAlertFromFireStations = fireStationsService.getPhoneAlertFromFireStations(stationNumber);
+
+        if (phoneAlertFromFireStations == null) {
+            throw new NoPhoneFoundFromFirestationException(stationNumber);
+        }
+        return phoneAlertFromFireStations;
     }
 
     @GetMapping(value = "/communityEmail", produces = "application/json")
-    public List<String> getCommunityEmail(@RequestParam String city) {
-        return fireStationsService.getCommunityEmail(city);
+    public List<String> getCommunityEmail(@RequestParam String city) throws NoEmailFoundFromCommunityException {
+        List<String> communityEmail = fireStationsService.getCommunityEmail(city);
+
+        if (communityEmail == null) {
+            throw new NoEmailFoundFromCommunityException(city);
+        }
+        return communityEmail;
     }
 
     @GetMapping(value = "/childAlert", produces = "application/json")
     public ChildAlert getChildAlert(@RequestParam String address) throws IOException {
-        return fireStationsService.getChildFromMedicalRecords(address);
+        ChildAlert childFromMedicalRecords = fireStationsService.getChildFromMedicalRecords(address);
+
+        if (childFromMedicalRecords == null) {
+            throw new NoChildFoundFromAddressException(address);
+        }
+        return childFromMedicalRecords;
     }
 
     @GetMapping(value = "/fire", produces = "application/json")
-    public FirePerson getFireAddress(@RequestParam String address) {
-        return fireStationsService.getFirePersonByAddress(address);
+    public FirePerson getFireAddress(@RequestParam String address) throws NoFirePersonFoundException {
+        FirePerson firePersonByAddress = fireStationsService.getFirePersonByAddress(address);
+
+        if (firePersonByAddress == null) {
+            throw new NoFirePersonFoundException(address);
+        }
+        return firePersonByAddress;
     }
 
     @GetMapping(value = "/flood/stations", produces = "application/json")
-    public List<InfoByStation> getFloodStations(@RequestParam List<Integer> stationNumberList) {
-        return fireStationsService.getFloodStationsForPersons(stationNumberList);
+    public List<InfoByStation> getFloodStations(@RequestParam List<Integer> stationNumberList) throws NoFirestationFoundException {
+        List<InfoByStation> floodStationsForPersons = fireStationsService.getFloodStationsForPersons(stationNumberList);
+
+        if (floodStationsForPersons == null) {
+            throw new NoFirestationFoundException(stationNumberList);
+        }
+        return floodStationsForPersons;
     }
 
     @GetMapping(value = "/personInfo", produces = "application/json")
-    public PersonInfo getPersonInfo(@RequestParam String firstName, @RequestParam String lastName) {
-        return fireStationsService.getPersonInfo(firstName, lastName);
+    public PersonInfo getPersonInfo(@RequestParam String firstName, @RequestParam String lastName) throws NoPersonFoundFromFirstNameAndNameException {
+        PersonInfo personInfo = fireStationsService.getPersonInfo(firstName, lastName);
+
+        if (personInfo == null) {
+            throw new NoPersonFoundFromFirstNameAndNameException(firstName, lastName);
+        }
+        return personInfo;
     }
 
     @PostMapping(value = "/person")
