@@ -19,19 +19,19 @@ public class InfoByStation {
 
     }
 
-    public List<InfoByAddress> getListInfo() {
+    public List<InfoByAddress> getInfoByAddressList() {
         return listInfo;
     }
 
-    public void setListInfo(List<InfoByAddress> listInfo) {
+    public void setInfoByAddressList(List<InfoByAddress> listInfo) {
         this.listInfo = listInfo;
     }
 
-    public int getStation() {
+    public int getStationNumber() {
         return station;
     }
 
-    public void setStation(int station) {
+    public void setStationNumber(int station) {
         this.station = station;
     }
 

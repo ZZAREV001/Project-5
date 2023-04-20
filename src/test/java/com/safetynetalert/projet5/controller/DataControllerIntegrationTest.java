@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @AutoConfigureMockMvc
@@ -113,14 +113,17 @@ class DataControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
+    // Problem with the test here:
     @Test
     void itTShouldGetChildAlert() throws Exception {
         String address = "123 Main St";
 
         // perform GET request and expect status 200 OK
         mockMvc.perform(get("/childAlert")
-                        .param("address", address))
-                .andExpect(status().isOk());
+                        .param("address", address)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("address").value(address));
     }
 
     @Test
@@ -186,8 +189,8 @@ class DataControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"firstName\": \"John\", \"lastName\": \"Doe\"}"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Doe"));
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test

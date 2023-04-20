@@ -2,7 +2,6 @@ package com.safetynetalert.projet5.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-
 import java.util.List;
 import java.util.Objects;
 

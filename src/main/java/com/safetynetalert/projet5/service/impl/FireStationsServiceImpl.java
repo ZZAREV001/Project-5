@@ -55,7 +55,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         List<FullInfoPerson> listAdult = new ArrayList<>();
         for (Person person : dataFileAccess.getPersonsByAddress(address)) {
             FullInfoPerson fullInfoPerson = new FullInfoPerson(
-                    person.getFirstName(), person.getLastName(),
+                    person.getLastName(), person.getFirstName(), // <- Swap these two lines
                     null, null,
                     null, null,
                     null, null,
@@ -74,6 +74,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         log.info("Request get child alerts failed.");
         throw new NoChildFoundFromAddressException(address);
     }
+
 
     @Override
     public List<String> getPhoneAlertFromFireStations(int stationNumber) throws NoFirestationFoundException {
@@ -306,8 +307,8 @@ public class FireStationsServiceImpl implements FireStationsService {
 
         if (infoByStationList != null) {
             for (InfoByStation infoByStation : infoByStationList) {
-                if (CollectionUtils.isEmpty(infoByStation.getListInfo())) {
-                    nbEmptyStationList.add(infoByStation.getStation());
+                if (CollectionUtils.isEmpty(infoByStation.getInfoByAddressList())) {
+                    nbEmptyStationList.add(infoByStation.getStationNumber());
                 }
             }
             if (CollectionUtils.isNotEmpty(nbEmptyStationList)) return nbEmptyStationList;

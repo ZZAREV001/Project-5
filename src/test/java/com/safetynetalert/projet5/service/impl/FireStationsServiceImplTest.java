@@ -5,36 +5,44 @@ import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
 import com.safetynetalert.projet5.exceptions.NoPersonFoundFromNamesException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.repository.DataFileAccess;
+import com.safetynetalert.projet5.service.MedicalRecordsService;
 import org.apache.commons.collections.CollectionUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
-@AutoConfigureMockMvc
+
+@ExtendWith(MockitoExtension.class)
 class FireStationsServiceImplTest {
 
     @Mock
     private DataFileAccess dataFileAccess;
+
     @Mock
+    private MedicalRecordsService medicalRecordsService;
+
+    @InjectMocks
     private FireStationsServiceImpl underTest;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        underTest = new FireStationsServiceImpl(dataFileAccess, null);
+        underTest = new FireStationsServiceImpl(dataFileAccess, medicalRecordsService); // important: passing objects here
+        underTest = spy(underTest); // manual creation of a spy.
     }
 
     @Test
@@ -70,13 +78,11 @@ class FireStationsServiceImplTest {
     void iTShouldGetChildFromMedicalRecords() throws IOException {
         // Given
         String address = "1509 Culver St";
-        //List<Person> personList = new ArrayList<>();
         Person adult = new Person("Doe", "John", address, "Culver", "97451", "841-349-1950", "john.doe@abc.com");
         Person child = new Person("Doe", "Jane", address, "Culver", "97451", "841-349-1950", "jane.doe@abc.com");
         MedicalRecords medicalRecords = new MedicalRecords("Jane", "Doe", "01/01/2010", List.of("med1", "med2"), List.of("allergy1"));
         given(dataFileAccess.getPersonsByAddress(address)).willReturn(List.of(adult, child));
-        given(dataFileAccess.getMedicalrecords()).willReturn(List.of(medicalRecords));
-        //given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
+        //given(dataFileAccess.getMedicalrecords()).willReturn(List.of(medicalRecords));
 
         // When
         ChildAlert childAlert = underTest.getChildFromMedicalRecords(address);
@@ -84,13 +90,12 @@ class FireStationsServiceImplTest {
         // Then
         assertThat(childAlert).isNotNull();
         assertThat(childAlert.getAddress()).isEqualTo(address);
-        assertThat(childAlert.getChild().get(0).getFirstName()).isEqualTo("Doe");
-        assertThat(childAlert.getChild().get(0).getLastName()).isEqualTo("John");
-        /*if (CollectionUtils.isNotEmpty(personList)) {
-            assertThat(underTest.getChildFromMedicalRecords(address)).isNotNull();
-        }
-        assertThatExceptionOfType(NoChildFoundFromAddressException.class)
-                .isThrownBy(() -> underTest.getChildFromMedicalRecords(address));*/
+        FullInfoPerson childInfo = childAlert.getChild().stream()
+                .filter(c -> c.getFirstName().equals("Jane"))
+                .findFirst().orElse(null);
+        assertThat(childInfo).isNotNull();
+        assertThat(childInfo.getFirstName()).isEqualTo("Jane");
+        assertThat(childInfo.getLastName()).isEqualTo("Doe");
     }
 
     @Test
@@ -135,7 +140,6 @@ class FireStationsServiceImplTest {
         // Given
         String address = "1509 Culver St";
         List<Person> personList = new ArrayList<>();
-        given(dataFileAccess.getPersonsByAddress(address)).willReturn(personList);
 
         // When
 
@@ -151,7 +155,7 @@ class FireStationsServiceImplTest {
 
     @Test
     void iTShouldGetFloodStationsForPersons() {
-        // Given
+        /*// Given
         List<Integer> stations = List.of(1, 2);
         given(dataFileAccess.getPersonsByFirestationNumber(1)).willReturn(List.of(new Person()));
         given(dataFileAccess.getPersonsByFirestationNumber(2)).willReturn(List.of(new Person()));
@@ -416,6 +420,58 @@ class FireStationsServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(3);
+    }
+
+    @Test
+    public void itShouldGetFloodStationsForPersons_validStations_returnsInfoByStations() throws Exception, NoFirestationFoundException {
+        // Given
+        List<Integer> stations = Arrays.asList(1, 2);
+        Person person1 = new Person();
+        person1.setAddress("123 Main St");
+        Person person2 = new Person();
+        person2.setAddress("456 Oak St");
+        List<Person> persons = Arrays.asList(person1, person2);
+
+        when(dataFileAccess.getPersons()).thenReturn(persons);
+        doReturn(Collections.singletonList(1)).when(underTest).getStationByAddress("123 Main St");
+        doReturn(Collections.singletonList(2)).when(underTest).getStationByAddress("456 Oak St");
+        when(dataFileAccess.getAgeFromPerson(person1)).thenReturn(30);
+        when(dataFileAccess.getAgeFromPerson(person2)).thenReturn(25);
+        when(medicalRecordsService.getMedicationsFromPerson(person1)).thenReturn(Collections.emptyList());
+        when(medicalRecordsService.getMedicationsFromPerson(person2)).thenReturn(Collections.emptyList());
+        when(medicalRecordsService.getAllergiesFromPerson(person1)).thenReturn(Collections.emptyList());
+        when(medicalRecordsService.getAllergiesFromPerson(person2)).thenReturn(Collections.emptyList());
+
+        // When
+        List<InfoByStation> result = underTest.getFloodStationsForPersons(stations);
+
+        // Then
+        assertEquals(2, result.size());
+        assertEquals(1, result.get(0).getStationNumber());
+        assertEquals(2, result.get(1).getStationNumber());
+    }
+
+    @Test
+    public void itShouldGetFloodStationsForPersons_invalidStation_throwsException() {
+        // Given
+        List<Integer> stations = Arrays.asList(1, 2, 3);
+
+        // When / Then
+        assertThrows(NoFirestationFoundException.class, () -> {
+            underTest.getFloodStationsForPersons(stations);
+        });
+    }
+
+    @Test
+    public void itShouldGetFloodStationsForPersons_nullStations_returnsEmptyList() throws Exception, NoFirestationFoundException {
+        // Given
+        List<Integer> stations = null;
+
+        // When
+        List<InfoByStation> result = underTest.getFloodStationsForPersons(stations);
+
+        // Then
+        assertTrue(result.isEmpty());
     }
 
 
