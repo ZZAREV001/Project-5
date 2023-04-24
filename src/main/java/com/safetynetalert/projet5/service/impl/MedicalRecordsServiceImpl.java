@@ -1,15 +1,11 @@
 package com.safetynetalert.projet5.service.impl;
 
-import com.safetynetalert.projet5.exceptions.ControllerAdvisor;
 import com.safetynetalert.projet5.model.MedicalRecords;
 import com.safetynetalert.projet5.model.Person;
 import com.safetynetalert.projet5.repository.DataFileAccess;
 import com.safetynetalert.projet5.service.MedicalRecordsService;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

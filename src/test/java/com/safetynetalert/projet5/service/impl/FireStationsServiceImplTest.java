@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +39,10 @@ class FireStationsServiceImplTest {
 
     @InjectMocks
     private FireStationsServiceImpl underTest;
+
+    private Person mockPerson1;
+    private Person mockPerson2;
+
 
     @BeforeEach
     void setUp() {
@@ -61,13 +67,6 @@ class FireStationsServiceImplTest {
         result.add(person1);
         FirestationsZone fireStationZone = underTest.getFireStationZone(stationNumber);
 
-        // Then
-        /*if (CollectionUtils.isNotEmpty(result)) {
-            assertThat(underTest.getFireStationZone(stationNumber)).isNotNull();
-        }
-        assertThatExceptionOfType(NoFirestationFoundException.class)
-                .isThrownBy(() -> underTest.getFireStationZone(stationNumber));*/
-
         assertThat(fireStationZone).isNotNull();
         assertThat(fireStationZone.getPersons()).containsExactly(person1);
         assertThat(fireStationZone.getAdults()).isEqualTo(1);
@@ -82,7 +81,6 @@ class FireStationsServiceImplTest {
         Person child = new Person("Doe", "Jane", address, "Culver", "97451", "841-349-1950", "jane.doe@abc.com");
         MedicalRecords medicalRecords = new MedicalRecords("Jane", "Doe", "01/01/2010", List.of("med1", "med2"), List.of("allergy1"));
         given(dataFileAccess.getPersonsByAddress(address)).willReturn(List.of(adult, child));
-        //given(dataFileAccess.getMedicalrecords()).willReturn(List.of(medicalRecords));
 
         // When
         ChildAlert childAlert = underTest.getChildFromMedicalRecords(address);
@@ -136,9 +134,9 @@ class FireStationsServiceImplTest {
     }
 
     @Test
-    void iTShouldGetFirePersonByAddress() {
+    void iTShouldGetFirePersonByAddress_success() {
         // Given
-        String address = "1509 Culver St";
+        /*String address = "1509 Culver St";
         List<Person> personList = new ArrayList<>();
 
         // When
@@ -150,48 +148,78 @@ class FireStationsServiceImplTest {
             assertThat(firePersonByAddress.getPersons()).hasSize(0);
         }
         assertThatExceptionOfType(NoChildFoundFromAddressException.class)
-                .isThrownBy(() -> underTest.getFirePersonByAddress(address));
+                .isThrownBy(() -> underTest.getFirePersonByAddress(address));*/
+        // Given
+        String address = "123 Test St";
+        List<Person> persons = Arrays.asList(new Person("John", "Doe", address, "Anytown", "12345", "555-1234", "john.doe@email.com"),
+                new Person("Jane", "Doe", address, "Anytown", "12345", "555-5678", "jane.doe@email.com"));
+        when(dataFileAccess.getPersonsByAddress(address)).thenReturn(persons);
+        when(dataFileAccess.getAgeFromPerson(any(Person.class))).thenReturn(30);
+        when(dataFileAccess.getNbStationByAddressFromPerson(any(Person.class))).thenReturn(1);
+        doReturn(Collections.singletonList(1)).when(underTest).getStationByAddress(address); // Update this line to use a spy for mocking
+
+        // When
+        FirePerson result = underTest.getFirePersonByAddress(address);
+
+        // Then
+        assertThat(result.getPersons()).hasSize(2);
+        assertThat(result.getPersons().get(0).getFirstName()).isEqualTo("John");
+        assertThat(result.getPersons().get(0).getAge()).isEqualTo(30);
+        assertThat(result.getPersons().get(0).getStation()).isEqualTo(1);
+        verify(dataFileAccess, times(2)).getPersonsByAddress(address);
+        verify(dataFileAccess, times(2)).getAgeFromPerson(any(Person.class));
+        verify(dataFileAccess, times(2)).getNbStationByAddressFromPerson(any(Person.class));
     }
 
     @Test
-    void iTShouldGetFloodStationsForPersons() {
-        /*// Given
-        List<Integer> stations = List.of(1, 2);
-        given(dataFileAccess.getPersonsByFirestationNumber(1)).willReturn(List.of(new Person()));
-        given(dataFileAccess.getPersonsByFirestationNumber(2)).willReturn(List.of(new Person()));
+    void getFirePersonByAddress_noChildFoundFromAddressException() {
+        // Given
+        String address = "123 Test St";
+        List<Firestations> firestationsList = new ArrayList<>();
+        firestationsList.add(new Firestations(address, 1));
+        firestationsList.add(new Firestations(address, 2));
 
-        // When
-        //List<InfoByStation> floodStationsForPersons = underTest.getFloodStationsForPersons(stations);
-        Throwable thrown = Assertions.catchThrowable(() -> {
-            underTest.getFloodStationsForPersons(stations);
-        });
+        List<Person> emptyPersonsByAddress = Collections.emptyList();
 
-        // Then
-        assertThat(thrown).isInstanceOf(NoFirestationFoundException.class);
-        /*assertThat(floodStationsForPersons).isNotNull();
-        assertThat(floodStationsForPersons).hasSize(2);
-        assertThat(floodStationsForPersons.get(0).getStation()).isEqualTo(1);
-        assertThat(floodStationsForPersons.get(1).getStation()).isEqualTo(2);*/
+        when(dataFileAccess.getPersonsByAddress(address)).thenReturn(emptyPersonsByAddress);
+        when(dataFileAccess.getFirestations()).thenReturn(firestationsList);
+
+        // When & Then
+        assertThatExceptionOfType(NoChildFoundFromAddressException.class)
+                .isThrownBy(() -> underTest.getFirePersonByAddress(address));
     }
 
     @Test
     void iTShouldGetPersonInfo() {
         // Given
-        String firstName = "abvx";
-        String lastName = "bsbd";
-        List<FullInfoPerson> personInfo = new ArrayList<>();
-        List<Person> personsByAddressWithNames = (List<Person>) dataFileAccess
-                .getPersonsByAddressWithNames(firstName, lastName);
-        List<Person> personInfoList = new ArrayList<>();
-        given(personsByAddressWithNames).willReturn(personInfoList);
+        String firstName = "John";
+        String lastName = "Doe";
+        Person testPerson = new Person("John", "Doe", "123 Test St", "TestCity", "12345", "555-5555", "john.doe@email.com");
+        List<Person> personsByAddressWithNames = Collections.singletonList(testPerson);
+
+        when(dataFileAccess.getPersonsByAddressWithNames(firstName, lastName)).thenReturn(personsByAddressWithNames);
+        when(medicalRecordsService.getMedicationsFromPerson(testPerson)).thenReturn(Collections.emptyList());
+        when(medicalRecordsService.getAllergiesFromPerson(testPerson)).thenReturn(Collections.emptyList());
 
         // When
-        if (CollectionUtils.isNotEmpty(personInfo)) {
-            underTest.getPersonInfo(firstName, lastName);
-        }
+        PersonInfo result = underTest.getPersonInfo(firstName, lastName);
 
         // Then
-        assertThat(personInfo).isNotNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getPersonsInfo()).hasSize(1);
+        assertThat(result.getPersonsInfo().get(0).getFirstName()).isEqualTo(firstName);
+        assertThat(result.getPersonsInfo().get(0).getLastName()).isEqualTo(lastName);
+    }
+
+    @Test
+    void itShouldGetPersonInfo_noPersonFound() {
+        // Given
+        String firstName = "John";
+        String lastName = "Doe";
+
+        when(dataFileAccess.getPersonsByAddressWithNames(firstName, lastName)).thenReturn(Collections.emptyList());
+
+        // Then
         assertThatExceptionOfType(NoPersonFoundFromNamesException.class)
                 .isThrownBy(() -> underTest.getPersonInfo(firstName, lastName));
     }
@@ -473,13 +501,5 @@ class FireStationsServiceImplTest {
         // Then
         assertTrue(result.isEmpty());
     }
-
-
-
-
-
-
-
-
 
 }

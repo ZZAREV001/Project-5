@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -55,7 +56,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         List<FullInfoPerson> listAdult = new ArrayList<>();
         for (Person person : dataFileAccess.getPersonsByAddress(address)) {
             FullInfoPerson fullInfoPerson = new FullInfoPerson(
-                    person.getLastName(), person.getFirstName(), // <- Swap these two lines
+                    person.getLastName(), person.getFirstName(),
                     null, null,
                     null, null,
                     null, null,
@@ -74,7 +75,6 @@ public class FireStationsServiceImpl implements FireStationsService {
         log.info("Request get child alerts failed.");
         throw new NoChildFoundFromAddressException(address);
     }
-
 
     @Override
     public List<String> getPhoneAlertFromFireStations(int stationNumber) throws NoFirestationFoundException {
@@ -104,8 +104,12 @@ public class FireStationsServiceImpl implements FireStationsService {
     public FirePerson getFirePersonByAddress(String address) {
         List<FullInfoPerson> listPersons = new ArrayList<>();
 
+        log.debug("Stations for address {}: {}", address, getStationByAddress(address));
+
         for (int station : getStationByAddress(address)) {
-            for (Person person : dataFileAccess.getPersonsByAddress(address)) {
+            log.debug("Persons for address {}: {}", address, dataFileAccess.getPersonsByAddress(address));
+
+            for (Person person : getPersonsByStationNumber(station, address)) {
                 FullInfoPerson fullInfoPerson = new FullInfoPerson(
                         person.getFirstName(), null,
                         person.getAddress(), null,
@@ -115,6 +119,7 @@ public class FireStationsServiceImpl implements FireStationsService {
                         dataFileAccess.getAllergiesPerPerson(person), dataFileAccess.getNbStationByAddressFromPerson(person));
                 if (fullInfoPerson.getAddress().equals(address)) {
                     listPersons.add(fullInfoPerson);
+                    log.debug("Adding FullInfoPerson for person {}", person);
                 }
             }
             if (CollectionUtils.isNotEmpty(listPersons)) {
@@ -125,6 +130,7 @@ public class FireStationsServiceImpl implements FireStationsService {
         log.info("Request get fire station failed.");
         throw new NoChildFoundFromAddressException(address);
     }
+
 
     @Override
     public List<InfoByStation> getFloodStationsForPersons(List<Integer> stations) throws NoFirestationFoundException {
@@ -317,15 +323,16 @@ public class FireStationsServiceImpl implements FireStationsService {
     }
 
     protected List<Integer> getStationByAddress(String address) {
-        List<Integer> stationNumber = new ArrayList<>();
-
-        for (Firestations fireStation : dataFileAccess.getFirestations()) {
-            if (address.compareTo(fireStation.getAddress()) == 0) {
-                stationNumber.add(fireStation.getStation());
-            }
-        }
-        return stationNumber;
+        return dataFileAccess.getFirestations().stream()
+                .filter(firestation -> firestation.getAddress().equalsIgnoreCase(address))
+                .map(firestation -> firestation.getStation())
+                .collect(Collectors.toList());
     }
+
+    protected List<Person> getPersonsByStationNumber(int stationNumber, String address) {
+        return dataFileAccess.getPersonsByAddress(address);
+    }
+
 
     // Not used helper methods, but they can be used if we extend this class:
     /*private List<String> getAddressByStation(int stationNumber) {

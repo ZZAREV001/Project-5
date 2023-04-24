@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynetalert.projet5.exceptions.NoFirestationFoundException;
 import com.safetynetalert.projet5.model.*;
 import com.safetynetalert.projet5.service.FireStationsService;
+import com.safetynetalert.projet5.exceptions.NoChildFoundFromAddressException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -45,9 +47,6 @@ class DataControllerIntegrationTest {
 
     @MockBean
     private FireStationsService fireStationsService;
-
-    @MockBean
-    private MedicalRecords medicalRecords;
 
     @Autowired
     private WebApplicationContext context;
@@ -115,15 +114,36 @@ class DataControllerIntegrationTest {
 
     // Problem with the test here:
     @Test
-    void itTShouldGetChildAlert() throws Exception {
-        String address = "123 Main St";
+    public void getChildAlert_success() throws Exception {
+        // Given
+        ChildAlert expectedChildAlert = new ChildAlert("some address", Arrays.asList(
+                new FullInfoPerson("lastName1", "firstName1", null, null, null, null, null,
+                        null, 10, null, null, 0)),
+                Arrays.asList(new FullInfoPerson("lastName2", "firstName2", null, null,
+                        null, null, null, null, 30, null, null, 0)));
+        when(fireStationsService.getChildFromMedicalRecords("some address"))
+                .thenReturn(expectedChildAlert);
 
-        // perform GET request and expect status 200 OK
+        // When
+        MvcResult mvcResult = mockMvc.perform(get("/childAlert?address=some address"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Then
+        verify(fireStationsService).getChildFromMedicalRecords("some address");
+        Assertions.assertThat(mvcResult.getResponse().getContentAsString())
+                .isEqualTo(objectMapper.writeValueAsString(expectedChildAlert));
+    }
+
+    @Test
+    public void getChildAlert_noChildFound() throws Exception {
+        String address = "testAddress";
+        when(fireStationsService.getChildFromMedicalRecords(address)).thenThrow(new NoChildFoundFromAddressException(address));
+
         mockMvc.perform(get("/childAlert")
                         .param("address", address)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("address").value(address));
+                .andExpect(status().isNotFound());
     }
 
     @Test
