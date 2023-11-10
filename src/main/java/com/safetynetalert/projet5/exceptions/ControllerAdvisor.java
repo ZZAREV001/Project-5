@@ -13,14 +13,6 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LogManager.getLogger(ControllerAdvisor.class);
 
-    /*@ExceptionHandler(NoFirestationFoundException.class)
-    @ResponseBody
-    public ResponseEntity<?> handleNoFirestationFoundException(NoFirestationFoundException e) {
-        logger.error("Firestation not found!");
-        return response(new ErrorResponse(404, "FIRESTATION_NOT_FOUND",
-                e.getMessage()));
-    }*/
-
     @ExceptionHandler(NoPersonFoundFromAddressException.class)
     @ResponseBody
     public ResponseEntity<?> handleNoPersonFoundFromAddressException(NoPersonFoundFromAddressException e) {
