@@ -42,3 +42,5 @@ This endpoint creates, updates, or deletes a medical record in memory.
 
 **3) Architecture of the Safety Net Alert**
 
+![Architecture of the Safety Net Alert](/Users/GoldenEagle/IdeaProjects/projet-5-bis/Architecture-project-5.png "Architecture Diagram")
+
